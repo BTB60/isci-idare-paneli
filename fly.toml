@@ -1,0 +1,31 @@
+# Fly.io — https://fly.io/docs/
+# İlk dəfə: flyctl quraşdırın, `fly auth login`, sonra `fly launch` (bu faylı təsdiqləyə bilərsiniz)
+# və ya: fly apps create APP_ADI && fly deploy --app APP_ADI
+
+app = "555-insaat-app"
+primary_region = "fra"
+
+[build]
+
+[env]
+  NODE_ENV = "production"
+
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 0
+  processes = ["app"]
+
+  [[http_service.checks]]
+    interval = "30s"
+    timeout = "5s"
+    grace_period = "15s"
+    method = "GET"
+    path = "/api/health"
+
+[[vm]]
+  memory = "512mb"
+  cpu_kind = "shared"
+  cpus = 1
