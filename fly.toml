@@ -2,8 +2,8 @@
 # İlk dəfə: flyctl quraşdırın, `fly auth login`, sonra `fly launch` (bu faylı təsdiqləyə bilərsiniz)
 # və ya: fly apps create APP_ADI && fly deploy --app APP_ADI
 
-app = "555-insaat-app"
-primary_region = "fra"
+app = "isci-idare-paneli"
+primary_region = "ams"
 
 [build]
 
@@ -25,6 +25,7 @@ primary_region = "fra"
     method = "GET"
     path = "/api/health"
 
+# UI-da 256MB seçmisiniz; Node+Mongo istiqamətində 512MB daha təhlükəsizdir (OOM olarsa buranı artırın).
 [[vm]]
   memory = "512mb"
   cpu_kind = "shared"
