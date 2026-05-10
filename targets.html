@@ -1,0 +1,390 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hədəflər - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Hədəflər</h1><p>İş hədəfləri və bonus sistemi</p></div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openModal('addTargetModal')">
+                        <i class="bi bi-plus"></i> Yeni Hədəf
+                    </button>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-bullseye"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aktiv Hədəf</h3>
+                            <p class="stat-value" id="activeTargets">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Çatılan</h3>
+                            <p class="stat-value" id="achievedTargets">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Bonus</h3>
+                            <p class="stat-value" id="totalBonus">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-percent"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Uğur Faizi</h3>
+                            <p class="stat-value" id="successRate">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Targets Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-check"></i> Hədəf Siyahısı</h3>
+                        <div class="card-actions">
+                            <select id="monthFilter" class="form-control" style="width: 120px;">
+                                <option value="">Bütün aylar</option>
+                            </select>
+                            <select id="workerFilter" class="form-control" style="width: 150px;">
+                                <option value="">Bütün işçilər</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>İşçi</th>
+                                        <th>Hədəf</th>
+                                        <th>Təsvir</th>
+                                        <th>Son Tarix</th>
+                                        <th>Progress</th>
+                                        <th>Bonus</th>
+                                        <th>Status</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="targetsTableBody">
+                                    <tr><td colspan="8" class="text-center">Məlumat yüklənir...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Target Modal -->
+    <div class="modal" id="addTargetModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-bullseye"></i> Yeni Hədəf</h3>
+                <button class="modal-close" onclick="closeModal('addTargetModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTargetForm">
+                    <div class="form-group">
+                        <label>İşçi *</label>
+                        <select name="workerId" class="form-control" required>
+                            <option value="">İşçi seçin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Hədəf Adı *</label>
+                        <input type="text" name="name" class="form-control" placeholder="Məsələn: 100 m2 divar işi" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Təsvir</label>
+                        <textarea name="description" class="form-control" rows="2" placeholder="Hədəf təsviri..."></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Hədəf Dəyəri *</label>
+                            <input type="number" name="targetValue" class="form-control" min="1" required placeholder="Məsələn: 100">
+                        </div>
+                        <div class="form-group">
+                            <label>Vahid *</label>
+                            <select name="unit" class="form-control" required>
+                                <option value="m2">m²</option>
+                                <option value="m3">m³</option>
+                                <option value="ədəd">ədəd</option>
+                                <option value="saat">saat</option>
+                                <option value="gün">gün</option>
+                                <option value="layihə">layihə</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Son Tarix *</label>
+                            <input type="date" name="deadline" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bonus (₼) *</label>
+                            <input type="number" name="bonus" class="form-control" min="0" step="0.01" required placeholder="Hədəfə çatanda veriləcək bonus">
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addTargetModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="saveTarget()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        // Initialize targets data
+        function initTargets() {
+            if (!localStorage.getItem('targets')) {
+                localStorage.setItem('targets', JSON.stringify([]));
+            }
+        }
+
+        function getTargets() {
+            return JSON.parse(localStorage.getItem('targets') || '[]');
+        }
+
+        function saveTargets(data) {
+            localStorage.setItem('targets', JSON.stringify(data));
+        }
+
+        // Load filters
+        function loadFilters() {
+            const workers = getWorkers();
+            const workerFilter = document.getElementById('workerFilter');
+            const workerSelect = document.querySelector('#addTargetForm select[name="workerId"]');
+            
+            const options = workers.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+            workerFilter.innerHTML += options;
+            workerSelect.innerHTML += options;
+
+            // Month filter
+            const months = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
+            const monthFilter = document.getElementById('monthFilter');
+            months.forEach((m, i) => {
+                monthFilter.innerHTML += `<option value="${i+1}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`;
+            });
+        }
+
+        // Load stats
+        function loadStats() {
+            const targets = getTargets();
+            const active = targets.filter(t => t.status === 'active').length;
+            const achieved = targets.filter(t => t.status === 'achieved').length;
+            const totalBonus = targets
+                .filter(t => t.status === 'achieved')
+                .reduce((sum, t) => sum + (t.bonus || 0), 0);
+            const successRate = targets.length > 0 ? Math.round((achieved / targets.length) * 100) : 0;
+
+            document.getElementById('activeTargets').textContent = active;
+            document.getElementById('achievedTargets').textContent = achieved;
+            document.getElementById('totalBonus').textContent = formatCurrency(totalBonus);
+            document.getElementById('successRate').textContent = successRate + '%';
+        }
+
+        // Load targets table
+        function loadTargets() {
+            const targets = getTargets();
+            const workers = getWorkers();
+            const monthFilter = document.getElementById('monthFilter').value;
+            const workerFilter = document.getElementById('workerFilter').value;
+
+            let filtered = targets;
+
+            if (monthFilter) {
+                filtered = filtered.filter(t => {
+                    const d = new Date(t.deadline);
+                    return d.getMonth() + 1 === parseInt(monthFilter);
+                });
+            }
+
+            if (workerFilter) {
+                filtered = filtered.filter(t => t.workerId === parseInt(workerFilter));
+            }
+
+            const tbody = document.getElementById('targetsTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Məlumat yoxdur</td></tr>';
+                return;
+            }
+
+            const statusBadges = {
+                'active': '<span class="badge badge-warning">Davam edir</span>',
+                'achieved': '<span class="badge badge-success">Çatıldı</span>',
+                'missed': '<span class="badge badge-danger">Çatılmadı</span>'
+            };
+
+            tbody.innerHTML = filtered.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)).map(t => {
+                const worker = workers.find(w => w.id === t.workerId);
+                const progress = Math.min(100, Math.round(((t.currentValue || 0) / t.targetValue) * 100));
+                const isOverdue = new Date(t.deadline) < new Date() && t.status === 'active';
+                
+                return `<tr>
+                    <td><strong>${worker?.name || 'Naməlum'}</strong></td>
+                    <td>${t.name}</td>
+                    <td>${t.description || '-'}</td>
+                    <td class="${isOverdue ? 'text-danger' : ''}">${formatDate(t.deadline)} ${isOverdue ? '(Gecikib)' : ''}</td>
+                    <td>
+                        <div style="display: flex; align-items: center; gap: 8px;">
+                            <div style="flex: 1; height: 8px; background: var(--gray-light); border-radius: 4px; overflow: hidden;">
+                                <div style="width: ${progress}%; height: 100%; background: ${progress >= 100 ? 'var(--success)' : 'var(--primary)'};"></div>
+                            </div>
+                            <span style="min-width: 50px;">${t.currentValue || 0}/${t.targetValue} ${t.unit}</span>
+                        </div>
+                    </td>
+                    <td>${formatCurrency(t.bonus)}</td>
+                    <td>${statusBadges[t.status]}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-action btn-edit" onclick="updateProgress(${t.id})" title="Progress yenilə"><i class="bi bi-pencil"></i></button>
+                            ${t.status === 'active' ? `
+                                <button class="btn-action btn-success" onclick="markAchieved(${t.id})" title="Çatıldı"><i class="bi bi-check-lg"></i></button>
+                            ` : ''}
+                            <button class="btn-action btn-delete" onclick="deleteTarget(${t.id})" title="Sil"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Save new target
+        function saveTarget() {
+            const form = document.getElementById('addTargetForm');
+            const formData = new FormData(form);
+
+            const targets = getTargets();
+            targets.push({
+                id: Date.now(),
+                workerId: parseInt(formData.get('workerId')),
+                name: formData.get('name'),
+                description: formData.get('description'),
+                targetValue: parseFloat(formData.get('targetValue')),
+                unit: formData.get('unit'),
+                currentValue: 0,
+                deadline: formData.get('deadline'),
+                bonus: parseFloat(formData.get('bonus')) || 0,
+                status: 'active',
+                createdAt: new Date().toISOString()
+            });
+
+            saveTargets(targets);
+            closeModal('addTargetModal');
+            form.reset();
+            loadTargets();
+            loadStats();
+            showAlert('Hədəf əlavə edildi', 'success');
+        }
+
+        // Update progress
+        function updateProgress(id) {
+            const target = getTargets().find(t => t.id === id);
+            if (!target) return;
+
+            const newValue = prompt(`Cari dəyəri daxil edin (${target.unit}):`, target.currentValue || 0);
+            if (newValue === null) return;
+
+            let targets = getTargets();
+            const idx = targets.findIndex(t => t.id === id);
+            if (idx !== -1) {
+                targets[idx].currentValue = parseFloat(newValue) || 0;
+                
+                // Auto-check if target achieved
+                if (targets[idx].currentValue >= targets[idx].targetValue) {
+                    targets[idx].status = 'achieved';
+                    targets[idx].achievedAt = new Date().toISOString();
+                    showAlert('Hədəfə çatıldı! Bonus hesablandı.', 'success');
+                }
+                
+                saveTargets(targets);
+                loadTargets();
+                loadStats();
+            }
+        }
+
+        // Mark as achieved
+        function markAchieved(id) {
+            let targets = getTargets();
+            const idx = targets.findIndex(t => t.id === id);
+            if (idx !== -1) {
+                targets[idx].status = 'achieved';
+                targets[idx].achievedAt = new Date().toISOString();
+                targets[idx].currentValue = targets[idx].targetValue;
+                saveTargets(targets);
+                loadTargets();
+                loadStats();
+                showAlert('Hədəf çatıldı kimi qeyd edildi', 'success');
+            }
+        }
+
+        // Delete target
+        function deleteTarget(id) {
+            if (!confirm('Bu hədəfi silmək istədiyinizə əminsiniz?')) return;
+            let targets = getTargets();
+            targets = targets.filter(t => t.id !== id);
+            saveTargets(targets);
+            loadTargets();
+            loadStats();
+            showAlert('Hədəf silindi', 'success');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Event listeners
+        document.getElementById('monthFilter')?.addEventListener('change', loadTargets);
+        document.getElementById('workerFilter')?.addEventListener('change', loadTargets);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initTargets();
+            loadFilters();
+            loadTargets();
+            loadStats();
+        });
+    </script>
+</body>
+</html>

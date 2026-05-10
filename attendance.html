@@ -1,0 +1,479 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Davamiyyət - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Davamiyyət</h1>
+                    <p>İşçilərin işə gəlmə və çıxma qeydləri</p>
+                </div>
+                <div class="topbar-right">
+                    <div class="date-display">
+                        <i class="bi bi-calendar3"></i>
+                        <span id="currentDate"></span>
+                    </div>
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bugün İşdə</h3>
+                            <p class="stat-value" id="presentCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-x-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Qayıb</h3>
+                            <p class="stat-value" id="absentCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Gözləyən</h3>
+                            <p class="stat-value" id="pendingCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>İcazədə</h3>
+                            <p class="stat-value" id="leaveCount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pending Approvals Section -->
+                <div class="card" id="pendingSection">
+                    <div class="card-header">
+                        <h3><i class="bi bi-hourglass-split"></i> Təsdiq Gözləyən Girişlər</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>İşçi</th>
+                                        <th>Tarix</th>
+                                        <th>Giriş Vaxtı</th>
+                                        <th>Status</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="pendingTableBody">
+                                    <tr>
+                                        <td colspan="5" class="text-center">Gözləyən giriş yoxdur</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Today's Attendance -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-calendar-check"></i> Bugünkü Davamiyyət</h3>
+                        <div class="card-actions">
+                            <input type="date" id="dateFilter" class="form-control" style="width: 150px;">
+                            <button class="btn btn-primary" onclick="loadAttendance()">
+                                <i class="bi bi-arrow-clockwise"></i> Yenilə
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>İşçi</th>
+                                        <th>Vəzifə</th>
+                                        <th>Status</th>
+                                        <th>Giriş</th>
+                                        <th>Çıxış</th>
+                                        <th>İş Saatı</th>
+                                        <th>Qeyd</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="attendanceTableBody">
+                                    <tr>
+                                        <td colspan="8" class="text-center">Məlumat yüklənir...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Manual Entry Modal -->
+    <div class="modal" id="manualEntryModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Əl ilə Davamiyyət Əlavə Et</h3>
+                <button class="modal-close" onclick="closeModal('manualEntryModal')">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="manualEntryForm">
+                    <div class="form-group">
+                        <label>İşçi *</label>
+                        <select name="workerId" class="form-control" required>
+                            <option value="">İşçi seçin</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tarix *</label>
+                            <input type="date" name="date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Status *</label>
+                            <select name="status" class="form-control" required>
+                                <option value="present">İşdə</option>
+                                <option value="absent">Qayıb</option>
+                                <option value="leave">İcazəli</option>
+                                <option value="half-day">Yarım gün</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Giriş Vaxtı</label>
+                            <input type="time" name="checkIn" class="form-control">
+                        </div>
+                        <div class="form-group">
+                            <label>Çıxış Vaxtı</label>
+                            <input type="time" name="checkOut" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Qeyd</label>
+                        <textarea name="note" class="form-control" rows="2" placeholder="Əlavə qeyd..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('manualEntryModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="saveManualEntry()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') {
+            window.location.href = 'worker-dashboard.html';
+        }
+
+        // Update user name
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+        }
+
+        // Set current date
+        document.getElementById('currentDate').textContent = new Date().toLocaleDateString('az-AZ', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+        document.getElementById('dateFilter').value = new Date().toISOString().split('T')[0];
+
+        // Initialize attendance data
+        function initializeAttendance() {
+            if (!localStorage.getItem('attendance')) {
+                localStorage.setItem('attendance', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('pendingAttendance')) {
+                localStorage.setItem('pendingAttendance', JSON.stringify([]));
+            }
+        }
+
+        // Get attendance data
+        function getAttendance() {
+            return JSON.parse(localStorage.getItem('attendance') || '[]');
+        }
+
+        function getPendingAttendance() {
+            return JSON.parse(localStorage.getItem('pendingAttendance') || '[]');
+        }
+
+        // Load attendance stats
+        function loadStats() {
+            const today = document.getElementById('dateFilter').value;
+            const attendance = getAttendance().filter(a => a.date === today);
+            const pending = getPendingAttendance().filter(a => a.date === today);
+            
+            const present = attendance.filter(a => a.status === 'present' || a.status === 'approved').length;
+            const absent = attendance.filter(a => a.status === 'absent').length;
+            const leave = attendance.filter(a => a.status === 'leave').length;
+            
+            document.getElementById('presentCount').textContent = present;
+            document.getElementById('absentCount').textContent = absent;
+            document.getElementById('pendingCount').textContent = pending.length;
+            document.getElementById('leaveCount').textContent = leave;
+        }
+
+        // Load pending approvals
+        function loadPendingApprovals() {
+            const pending = getPendingAttendance();
+            const tbody = document.getElementById('pendingTableBody');
+            const workers = getWorkers();
+            
+            if (pending.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">Gözləyən giriş yoxdur</td></tr>';
+                document.getElementById('pendingSection').style.display = 'none';
+                return;
+            }
+            
+            document.getElementById('pendingSection').style.display = 'block';
+            
+            tbody.innerHTML = pending.map(p => {
+                const worker = workers.find(w => w.id === p.workerId);
+                return `
+                    <tr>
+                        <td><strong>${worker ? worker.name : 'Naməlum'}</strong></td>
+                        <td>${p.date}</td>
+                        <td>${p.checkIn || '-'}</td>
+                        <td><span class="badge badge-warning">Gözləyir</span></td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-action btn-success" onclick="approveAttendance(${p.id})" title="Təsdiq et">
+                                    <i class="bi bi-check-lg"></i>
+                                </button>
+                                <button class="btn-action btn-danger" onclick="rejectAttendance(${p.id})" title="Rədd et">
+                                    <i class="bi bi-x-lg"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Load attendance table
+        function loadAttendance() {
+            const date = document.getElementById('dateFilter').value;
+            const attendance = getAttendance().filter(a => a.date === date);
+            const pending = getPendingAttendance().filter(a => a.date === date);
+            const workers = getWorkers();
+            const tbody = document.getElementById('attendanceTableBody');
+            
+            // Combine approved and pending for display
+            const allRecords = [...attendance];
+            
+            // Add workers without records as absent
+            workers.forEach(worker => {
+                const hasRecord = allRecords.find(a => a.workerId === worker.id);
+                const hasPending = pending.find(p => p.workerId === worker.id);
+                
+                if (!hasRecord && !hasPending) {
+                    allRecords.push({
+                        workerId: worker.id,
+                        date: date,
+                        status: 'no-record',
+                        checkIn: null,
+                        checkOut: null
+                    });
+                }
+            });
+            
+            if (allRecords.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="8" class="text-center">Məlumat yoxdur</td></tr>';
+                return;
+            }
+            
+            tbody.innerHTML = allRecords.map(a => {
+                const worker = workers.find(w => w.id === a.workerId);
+                const pendingRecord = pending.find(p => p.workerId === a.workerId && p.date === date);
+                
+                const statusBadges = {
+                    'present': '<span class="badge badge-success">İşdə</span>',
+                    'approved': '<span class="badge badge-success">Təsdiqləndi</span>',
+                    'absent': '<span class="badge badge-danger">Qayıb</span>',
+                    'leave': '<span class="badge badge-info">İcazəli</span>',
+                    'half-day': '<span class="badge badge-warning">Yarım gün</span>',
+                    'no-record': '<span class="badge badge-secondary">Qeyd yoxdur</span>',
+                    'pending': '<span class="badge badge-warning">Gözləyir</span>'
+                };
+                
+                const hoursWorked = a.checkIn && a.checkOut ? 
+                    calculateHours(a.checkIn, a.checkOut) : '-';
+                
+                const status = pendingRecord ? 'pending' : a.status;
+                
+                return `
+                    <tr>
+                        <td><strong>${worker ? worker.name : 'Naməlum'}</strong></td>
+                        <td>${worker ? worker.position : '-'}</td>
+                        <td>${statusBadges[status] || status}</td>
+                        <td>${a.checkIn || '-'}</td>
+                        <td>${a.checkOut || '-'}</td>
+                        <td>${hoursWorked}</td>
+                        <td>${a.note || '-'}</td>
+                        <td>
+                            <div class="action-btns">
+                                ${pendingRecord ? `
+                                    <button class="btn-action btn-success" onclick="approveAttendance(${pendingRecord.id})" title="Təsdiq et">
+                                        <i class="bi bi-check-lg"></i>
+                                    </button>
+                                    <button class="btn-action btn-danger" onclick="rejectAttendance(${pendingRecord.id})" title="Rədd et">
+                                        <i class="bi bi-x-lg"></i>
+                                    </button>
+                                ` : `
+                                    <button class="btn-action btn-edit" onclick="editAttendance(${a.workerId}, '${date}')" title="Redaktə">
+                                        <i class="bi bi-pencil"></i>
+                                    </button>
+                                `}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+            
+            loadStats();
+        }
+
+        // Calculate hours between two times
+        function calculateHours(checkIn, checkOut) {
+            const [inH, inM] = checkIn.split(':').map(Number);
+            const [outH, outM] = checkOut.split(':').map(Number);
+            const diff = (outH * 60 + outM) - (inH * 60 + inM);
+            const hours = Math.floor(diff / 60);
+            const mins = diff % 60;
+            return `${hours}saq ${mins}dəq`;
+        }
+
+        // Approve attendance
+        function approveAttendance(id) {
+            let pending = getPendingAttendance();
+            const record = pending.find(p => p.id === id);
+            
+            if (record) {
+                let attendance = getAttendance();
+                attendance.push({
+                    ...record,
+                    status: 'approved',
+                    approvedBy: currentUser.id,
+                    approvedAt: new Date().toISOString()
+                });
+                
+                pending = pending.filter(p => p.id !== id);
+                
+                localStorage.setItem('attendance', JSON.stringify(attendance));
+                localStorage.setItem('pendingAttendance', JSON.stringify(pending));
+                
+                loadAttendance();
+                loadPendingApprovals();
+                showAlert('Giriş təsdiqləndi', 'success');
+            }
+        }
+
+        // Reject attendance
+        function rejectAttendance(id) {
+            let pending = getPendingAttendance();
+            pending = pending.filter(p => p.id !== id);
+            localStorage.setItem('pendingAttendance', JSON.stringify(pending));
+            
+            loadAttendance();
+            loadPendingApprovals();
+            showAlert('Giriş rədd edildi', 'danger');
+        }
+
+        // Load worker options for manual entry
+        function loadWorkerOptions() {
+            const workers = getWorkers();
+            const select = document.querySelector('#manualEntryForm select[name="workerId"]');
+            select.innerHTML = '<option value="">İşçi seçin</option>' + 
+                workers.map(w => `<option value="${w.id}">${w.name} (${w.position})</option>`).join('');
+        }
+
+        // Save manual entry
+        function saveManualEntry() {
+            const form = document.getElementById('manualEntryForm');
+            const formData = new FormData(form);
+            
+            const attendance = getAttendance();
+            attendance.push({
+                id: Date.now(),
+                workerId: parseInt(formData.get('workerId')),
+                date: formData.get('date'),
+                status: formData.get('status'),
+                checkIn: formData.get('checkIn'),
+                checkOut: formData.get('checkOut'),
+                note: formData.get('note'),
+                createdBy: currentUser.id,
+                createdAt: new Date().toISOString()
+            });
+            
+            localStorage.setItem('attendance', JSON.stringify(attendance));
+            closeModal('manualEntryModal');
+            form.reset();
+            loadAttendance();
+            showAlert('Davamiyyət qeydi əlavə edildi', 'success');
+        }
+
+        // Show alert
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
+            document.body.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeAttendance();
+            loadAttendance();
+            loadPendingApprovals();
+            loadWorkerOptions();
+        });
+    </script>
+</body>
+</html>

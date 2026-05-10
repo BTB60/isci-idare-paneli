@@ -1,0 +1,377 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Avanslar - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Avanslar</h1><p>Maaş avansı idarəetmə</p></div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openModal('addAdvanceModal')">
+                        <i class="bi bi-plus"></i> Avans Ver
+                    </button>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Gözləyən</h3>
+                            <p class="stat-value" id="pendingCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Təsdiqlənən</h3>
+                            <p class="stat-value" id="approvedCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aylıq Avans</h3>
+                            <p class="stat-value" id="monthlyTotal">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-wallet2"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Qaytarılmayıb</h3>
+                            <p class="stat-value" id="unpaidTotal">0 ₼</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="filterAdvances('all')">Hamısı</button>
+                    <button class="tab-btn" onclick="filterAdvances('pending')">Gözləyən</button>
+                    <button class="tab-btn" onclick="filterAdvances('approved')">Təsdiqlənən</button>
+                    <button class="tab-btn" onclick="filterAdvances('repaid')">Qaytarılan</button>
+                </div>
+
+                <!-- Advances Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-cash-coin"></i> Avans Siyahısı</h3>
+                        <div class="card-actions">
+                            <select id="monthFilter" class="form-control" style="width: 120px;">
+                                <option value="">Bütün aylar</option>
+                            </select>
+                            <select id="workerFilter" class="form-control" style="width: 150px;">
+                                <option value="">Bütün işçilər</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tarix</th>
+                                        <th>İşçi</th>
+                                        <th>Məbləğ</th>
+                                        <th>Səbəb</th>
+                                        <th>Status</th>
+                                        <th>Qaytarma</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="advancesTableBody">
+                                    <tr><td colspan="7" class="text-center">Məlumat yüklənir...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Advance Modal -->
+    <div class="modal" id="addAdvanceModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-cash-coin"></i> Avans Ver</h3>
+                <button class="modal-close" onclick="closeModal('addAdvanceModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addAdvanceForm">
+                    <div class="form-group">
+                        <label>İşçi *</label>
+                        <select name="workerId" class="form-control" required>
+                            <option value="">İşçi seçin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Məbləğ (₼) *</label>
+                        <input type="number" name="amount" class="form-control" min="1" step="0.01" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Səbəb</label>
+                        <textarea name="reason" class="form-control" rows="2" placeholder="Avans səbəbi..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Qaytarma Tarixi</label>
+                        <input type="date" name="repayDate" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addAdvanceModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="saveAdvance()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        // Initialize advances data
+        function initAdvances() {
+            if (!localStorage.getItem('advances')) {
+                localStorage.setItem('advances', JSON.stringify([]));
+            }
+        }
+
+        function getAdvances() {
+            return JSON.parse(localStorage.getItem('advances') || '[]');
+        }
+
+        // Load filters
+        function loadFilters() {
+            const workers = getWorkers();
+            const workerFilter = document.getElementById('workerFilter');
+            workerFilter.innerHTML = '<option value="">Bütün işçilər</option>' + 
+                workers.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+
+            // Month filter
+            const months = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
+            const monthFilter = document.getElementById('monthFilter');
+            months.forEach((m, i) => {
+                monthFilter.innerHTML += `<option value="${i+1}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`;
+            });
+
+            // Worker select in modal
+            const workerSelect = document.querySelector('#addAdvanceForm select[name="workerId"]');
+            workerSelect.innerHTML = '<option value="">İşçi seçin</option>' + 
+                workers.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+        }
+
+        // Load stats
+        function loadStats() {
+            const advances = getAdvances();
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+
+            const pending = advances.filter(a => a.status === 'pending');
+            const approved = advances.filter(a => a.status === 'approved');
+            const monthlyAdvances = advances.filter(a => {
+                const d = new Date(a.date);
+                return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+            });
+            const unpaid = advances.filter(a => a.status === 'approved' && !a.repaid);
+
+            document.getElementById('pendingCount').textContent = pending.length;
+            document.getElementById('approvedCount').textContent = approved.length;
+            document.getElementById('monthlyTotal').textContent = formatCurrency(monthlyAdvances.reduce((sum, a) => sum + a.amount, 0));
+            document.getElementById('unpaidTotal').textContent = formatCurrency(unpaid.reduce((sum, a) => sum + a.amount, 0));
+        }
+
+        // Load advances table
+        let currentFilter = 'all';
+        function loadAdvances() {
+            const advances = getAdvances();
+            const workers = getWorkers();
+            const monthFilter = document.getElementById('monthFilter').value;
+            const workerFilter = document.getElementById('workerFilter').value;
+
+            let filtered = advances;
+
+            if (currentFilter !== 'all') {
+                filtered = filtered.filter(a => a.status === currentFilter);
+            }
+
+            if (monthFilter) {
+                filtered = filtered.filter(a => {
+                    const d = new Date(a.date);
+                    return d.getMonth() + 1 === parseInt(monthFilter);
+                });
+            }
+
+            if (workerFilter) {
+                filtered = filtered.filter(a => a.workerId === parseInt(workerFilter));
+            }
+
+            const tbody = document.getElementById('advancesTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Məlumat yoxdur</td></tr>';
+                return;
+            }
+
+            const statusBadges = {
+                'pending': '<span class="badge badge-warning">Gözləyir</span>',
+                'approved': '<span class="badge badge-success">Təsdiqləndi</span>',
+                'rejected': '<span class="badge badge-danger">Rədd edildi</span>',
+                'repaid': '<span class="badge badge-info">Qaytarıldı</span>'
+            };
+
+            tbody.innerHTML = filtered.sort((a, b) => new Date(b.date) - new Date(a.date)).map(a => {
+                const worker = workers.find(w => w.id === a.workerId);
+                return `<tr>
+                    <td>${formatDate(a.date)}</td>
+                    <td><strong>${worker?.name || 'Naməlum'}</strong></td>
+                    <td><strong>${formatCurrency(a.amount)}</strong></td>
+                    <td>${a.reason || '-'}</td>
+                    <td>${statusBadges[a.status]}</td>
+                    <td>${a.repaid ? formatDate(a.repayDate) : (a.repayDate ? formatDate(a.repayDate) : '-')}</td>
+                    <td>
+                        <div class="action-btns">
+                            ${a.status === 'pending' ? `
+                                <button class="btn-action btn-success" onclick="approveAdvance(${a.id})" title="Təsdiqlə"><i class="bi bi-check-lg"></i></button>
+                                <button class="btn-action btn-delete" onclick="rejectAdvance(${a.id})" title="Rədd et"><i class="bi bi-x-lg"></i></button>
+                            ` : ''}
+                            ${a.status === 'approved' && !a.repaid ? `
+                                <button class="btn-action btn-info" onclick="markRepaid(${a.id})" title="Qaytarıldı"><i class="bi bi-check-all"></i></button>
+                            ` : ''}
+                            <button class="btn-action btn-delete" onclick="deleteAdvance(${a.id})" title="Sil"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        function filterAdvances(status) {
+            currentFilter = status;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadAdvances();
+        }
+
+        function saveAdvance() {
+            const form = document.getElementById('addAdvanceForm');
+            const formData = new FormData(form);
+
+            const advances = getAdvances();
+            advances.push({
+                id: Date.now(),
+                workerId: parseInt(formData.get('workerId')),
+                amount: parseFloat(formData.get('amount')),
+                reason: formData.get('reason'),
+                repayDate: formData.get('repayDate'),
+                date: new Date().toISOString(),
+                status: 'approved', // Admin directly approves
+                createdBy: currentUser.id
+            });
+
+            localStorage.setItem('advances', JSON.stringify(advances));
+            closeModal('addAdvanceModal');
+            form.reset();
+            loadAdvances();
+            loadStats();
+            showAlert('Avans əlavə edildi', 'success');
+        }
+
+        function approveAdvance(id) {
+            let advances = getAdvances();
+            const idx = advances.findIndex(a => a.id === id);
+            if (idx !== -1) {
+                advances[idx].status = 'approved';
+                advances[idx].approvedBy = currentUser.id;
+                advances[idx].approvedAt = new Date().toISOString();
+                localStorage.setItem('advances', JSON.stringify(advances));
+                loadAdvances();
+                loadStats();
+                showAlert('Avans təsdiqləndi', 'success');
+            }
+        }
+
+        function rejectAdvance(id) {
+            let advances = getAdvances();
+            const idx = advances.findIndex(a => a.id === id);
+            if (idx !== -1) {
+                advances[idx].status = 'rejected';
+                advances[idx].rejectedBy = currentUser.id;
+                advances[idx].rejectedAt = new Date().toISOString();
+                localStorage.setItem('advances', JSON.stringify(advances));
+                loadAdvances();
+                loadStats();
+                showAlert('Avans rədd edildi', 'danger');
+            }
+        }
+
+        function markRepaid(id) {
+            let advances = getAdvances();
+            const idx = advances.findIndex(a => a.id === id);
+            if (idx !== -1) {
+                advances[idx].repaid = true;
+                advances[idx].repaidAt = new Date().toISOString();
+                advances[idx].status = 'repaid';
+                localStorage.setItem('advances', JSON.stringify(advances));
+                loadAdvances();
+                loadStats();
+                showAlert('Avans qaytarıldı kimi qeyd edildi', 'success');
+            }
+        }
+
+        function deleteAdvance(id) {
+            if (!confirm('Bu avansı silmək istədiyinizə əminsiniz?')) return;
+            let advances = getAdvances();
+            advances = advances.filter(a => a.id !== id);
+            localStorage.setItem('advances', JSON.stringify(advances));
+            loadAdvances();
+            loadStats();
+            showAlert('Avans silindi', 'success');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Event listeners
+        document.getElementById('monthFilter')?.addEventListener('change', loadAdvances);
+        document.getElementById('workerFilter')?.addEventListener('change', loadAdvances);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initAdvances();
+            loadFilters();
+            loadAdvances();
+            loadStats();
+        });
+    </script>
+</body>
+</html>

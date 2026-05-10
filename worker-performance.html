@@ -1,0 +1,396 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performansım - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div>
+                    <h2>555 İnşaat</h2>
+                    <small>İşçi Paneli</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="worker-dashboard.html" class="nav-item">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="worker-performance.html" class="nav-item active">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Performansım</span>
+                </a>
+                <a href="worker-tasks.html" class="nav-item">
+                    <i class="bi bi-list-task"></i>
+                    <span>Tapşırıqlarım</span>
+                </a>
+                <a href="worker-salary.html" class="nav-item">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Maaşım</span>
+                </a>
+                <a href="worker-permissions.html" class="nav-item">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>İcazələrim</span>
+                </a>
+                <a href="worker-shift-change.html" class="nav-item">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Növbə Dəyişmə</span>
+                </a>
+            </nav>
+
+       
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Performansım</h1>
+                    <p>Şəxsi performans statistikası</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Performance Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi İş Günü</h3>
+                            <p class="stat-value" id="totalWorkDays">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>İştirak Faizi</h3>
+                            <p class="stat-value" id="attendanceRate">0%</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-speedometer2"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ortalama Səmərə</h3>
+                            <p class="stat-value" id="avgEfficiency">0%</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Reytinqim</h3>
+                            <p class="stat-value" id="myRank">-</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Filter -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-funnel"></i> Ay Seçimi</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Ay</label>
+                                <select class="form-control" id="filterMonth" onchange="loadPerformance()">
+                                    <option value="1">Yanvar</option>
+                                    <option value="2">Fevral</option>
+                                    <option value="3" selected>Mart</option>
+                                    <option value="4">Aprel</option>
+                                    <option value="5">May</option>
+                                    <option value="6">İyun</option>
+                                    <option value="7">İyul</option>
+                                    <option value="8">Avqust</option>
+                                    <option value="9">Sentyabr</option>
+                                    <option value="10">Oktyabr</option>
+                                    <option value="11">Noyabr</option>
+                                    <option value="12">Dekabr</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>İl</label>
+                                <select class="form-control" id="filterYear" onchange="loadPerformance()">
+                                    <option value="2024">2024</option>
+                                    <option value="2025" selected>2025</option>
+                                    <option value="2026">2026</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Attendance Details -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-calendar-week"></i> Davamiyyət Detalları</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="attendance-breakdown" id="attendanceBreakdown">
+                                <div class="breakdown-item">
+                                    <div class="breakdown-icon bg-success">
+                                        <i class="bi bi-check-circle"></i>
+                                    </div>
+                                    <div class="breakdown-info">
+                                        <span class="breakdown-label">Tam İştirak</span>
+                                        <span class="breakdown-value" id="presentCount">0 gün</span>
+                                    </div>
+                                </div>
+                                <div class="breakdown-item">
+                                    <div class="breakdown-icon bg-warning">
+                                        <i class="bi bi-clock"></i>
+                                    </div>
+                                    <div class="breakdown-info">
+                                        <span class="breakdown-label">Gecikmə ilə</span>
+                                        <span class="breakdown-value" id="lateCount">0 gün</span>
+                                    </div>
+                                </div>
+                                <div class="breakdown-item">
+                                    <div class="breakdown-icon bg-danger">
+                                        <i class="bi bi-x-circle"></i>
+                                    </div>
+                                    <div class="breakdown-info">
+                                        <span class="breakdown-label">Qayıb</span>
+                                        <span class="breakdown-value" id="absentCount">0 gün</span>
+                                    </div>
+                                </div>
+                                <div class="breakdown-item">
+                                    <div class="breakdown-icon bg-info">
+                                        <i class="bi bi-umbrella"></i>
+                                    </div>
+                                    <div class="breakdown-info">
+                                        <span class="breakdown-label">İznlə</span>
+                                        <span class="breakdown-value" id="excusedCount">0 gün</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Efficiency Chart -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-bar-chart"></i> Günlük Səmərə</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="efficiencyChart">
+                                <div class="efficiency-bars" id="efficiencyBars">
+                                    <!-- Dynamic bars -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Daily Records -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-check"></i> Günlük Qeydlər</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tarix</th>
+                                        <th>Status</th>
+                                        <th>İş Saatı</th>
+                                        <th>Səmərə (%)</th>
+                                        <th>Qeyd</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dailyRecords">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="worker-shell.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (currentUser && userRoleLanding(currentUser) !== 'worker') {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userPosition').textContent = currentUser.position;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        // Set current month/year
+        const now = new Date();
+        document.getElementById('filterMonth').value = now.getMonth() + 1;
+        document.getElementById('filterYear').value = now.getFullYear();
+
+        // Load performance data
+        function loadPerformance() {
+            if (!currentUser) return;
+
+            const month = parseInt(document.getElementById('filterMonth').value);
+            const year = parseInt(document.getElementById('filterYear').value);
+            const workerId = currentUser.id;
+
+            const performance = getPerformance();
+            const allWorkers = getWorkers();
+
+            // Filter performance for current worker and month
+            const workerPerformance = performance.filter(p => {
+                const pDate = new Date(p.date);
+                return p.workerId === workerId && pDate.getMonth() + 1 === month && pDate.getFullYear() === year;
+            });
+
+            // Calculate stats
+            const totalDays = workerPerformance.length;
+            const present = workerPerformance.filter(p => p.status === 'present').length;
+            const late = workerPerformance.filter(p => p.status === 'late').length;
+            const absent = workerPerformance.filter(p => p.status === 'absent').length;
+            const excused = workerPerformance.filter(p => p.status === 'excused').length;
+
+            const attendanceRate = totalDays > 0 ? ((present + late) / totalDays * 100).toFixed(1) : 0;
+            const avgEfficiency = totalDays > 0 
+                ? (workerPerformance.reduce((sum, p) => sum + (p.efficiency || 0), 0) / totalDays).toFixed(1)
+                : 0;
+
+            // Update stats
+            document.getElementById('totalWorkDays').textContent = totalDays;
+            document.getElementById('attendanceRate').textContent = attendanceRate + '%';
+            document.getElementById('avgEfficiency').textContent = avgEfficiency + '%';
+
+            // Update breakdown
+            document.getElementById('presentCount').textContent = present + ' gün';
+            document.getElementById('lateCount').textContent = late + ' gün';
+            document.getElementById('absentCount').textContent = absent + ' gün';
+            document.getElementById('excusedCount').textContent = excused + ' gün';
+
+            // Calculate rank
+            const workerEfficiencies = allWorkers.map(w => {
+                const wPerformance = performance.filter(p => {
+                    const pDate = new Date(p.date);
+                    return p.workerId === w.id && pDate.getMonth() + 1 === month && pDate.getFullYear() === year;
+                });
+                const wAvg = wPerformance.length > 0 
+                    ? wPerformance.reduce((sum, p) => sum + (p.efficiency || 0), 0) / wPerformance.length
+                    : 0;
+                return { id: w.id, avg: wAvg };
+            });
+
+            workerEfficiencies.sort((a, b) => b.avg - a.avg);
+            const myRank = workerEfficiencies.findIndex(w => w.id === workerId) + 1;
+            document.getElementById('myRank').textContent = myRank > 0 ? '#' + myRank : '-';
+
+            // Load efficiency bars
+            loadEfficiencyBars(workerPerformance);
+
+            // Load daily records
+            loadDailyRecords(workerPerformance);
+        }
+
+        // Load efficiency bars
+        function loadEfficiencyBars(performance) {
+            const container = document.getElementById('efficiencyBars');
+            
+            if (performance.length === 0) {
+                container.innerHTML = '<p class="text-center text-muted">Məlumat yoxdur</p>';
+                return;
+            }
+
+            // Show last 10 records
+            const recent = performance.slice(-10).reverse();
+            
+            container.innerHTML = recent.map(p => {
+                const efficiency = p.efficiency || 0;
+                const color = efficiency >= 90 ? 'bg-success' : efficiency >= 70 ? 'bg-warning' : 'bg-danger';
+                const date = new Date(p.date).getDate();
+                
+                return `
+                    <div class="efficiency-bar-item">
+                        <div class="efficiency-bar-label">${date}</div>
+                        <div class="efficiency-bar">
+                            <div class="efficiency-bar-fill ${color}" style="height: ${efficiency}%"></div>
+                        </div>
+                        <div class="efficiency-bar-value">${efficiency}%</div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Load daily records
+        function loadDailyRecords(performance) {
+            const tbody = document.getElementById('dailyRecords');
+            
+            if (performance.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="5" class="text-center">Məlumat yoxdur</td></tr>';
+                return;
+            }
+
+            // Sort by date descending
+            const sorted = [...performance].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+            tbody.innerHTML = sorted.map(p => {
+                const statusBadge = {
+                    'present': '<span class="badge badge-success">İştirak</span>',
+                    'late': '<span class="badge badge-warning">Gecikmə</span>',
+                    'absent': '<span class="badge badge-danger">Qayıb</span>',
+                    'excused': '<span class="badge badge-info">İznlə</span>'
+                }[p.status] || p.status;
+
+                return `
+                    <tr>
+                        <td>${formatDate(p.date)}</td>
+                        <td>${statusBadge}</td>
+                        <td>${p.hoursWorked || 8} saat</td>
+                        <td>
+                            <div class="progress-cell">
+                                <div class="progress-bar-mini">
+                                    <div class="progress-fill" style="width: ${p.efficiency || 0}%"></div>
+                                </div>
+                                <span>${p.efficiency || 0}%</span>
+                            </div>
+                        </td>
+                        <td>${p.note || '-'}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadPerformance);
+    </script>
+</body>
+</html>

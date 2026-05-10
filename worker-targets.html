@@ -1,0 +1,197 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hədəflərim - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div><h2>555 İnşaat</h2><small>İşçi Paneli</small></div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="worker-dashboard.html" class="nav-item"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+                <a href="worker-performance.html" class="nav-item"><i class="bi bi-graph-up"></i><span>Performansım</span></a>
+                <a href="worker-tasks.html" class="nav-item"><i class="bi bi-list-task"></i><span>Tapşırıqlarım</span></a>
+                <a href="worker-projects.html" class="nav-item"><i class="bi bi-building"></i><span>Layihələrim</span></a>
+                <a href="worker-overtime.html" class="nav-item"><i class="bi bi-clock-fill"></i><span>Məsai</span></a>
+                <a href="worker-advances.html" class="nav-item"><i class="bi bi-cash-coin"></i><span>Avanslarım</span></a>
+                <a href="worker-salary.html" class="nav-item"><i class="bi bi-cash-stack"></i><span>Maaşım</span></a>
+                <a href="worker-targets.html" class="nav-item active"><i class="bi bi-bullseye"></i><span>Hədəflərim</span></a>
+                <a href="worker-permissions.html" class="nav-item"><i class="bi bi-calendar-check"></i><span>İcazələrim</span></a>
+                <a href="worker-documents.html" class="nav-item"><i class="bi bi-file-earmark-text"></i><span>Sənədlərim</span></a>
+                <a href="worker-shift-change.html" class="nav-item"><i class="bi bi-arrow-left-right"></i><span>Növbə Dəyişmə</span></a>
+            </nav>
+           
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Hədəflərim</h1><p>Aylıq iş hədəflərim və bonuslar</p></div>
+                <div class="topbar-right">
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-bullseye"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aktiv Hədəf</h3>
+                            <p class="stat-value" id="activeTargets">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-trophy"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Çatılan</h3>
+                            <p class="stat-value" id="achievedTargets">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Qazanılan Bonus</h3>
+                            <p class="stat-value" id="totalBonus">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-percent"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Progress</h3>
+                            <p class="stat-value" id="avgProgress">0%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Targets List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-check"></i> Hədəf Siyahısı</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="targetsList">
+                            <!-- Targets will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="worker-shell.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (!currentUser) window.location.href = 'login.html';
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        function getTargets() {
+            return JSON.parse(localStorage.getItem('targets') || '[]');
+        }
+
+        // Load my targets
+        function loadMyTargets() {
+            const allTargets = getTargets();
+            const myTargets = allTargets.filter(t => t.workerId === currentUser.id);
+
+            // Calculate stats
+            const active = myTargets.filter(t => t.status === 'active').length;
+            const achieved = myTargets.filter(t => t.status === 'achieved').length;
+            const totalBonus = myTargets
+                .filter(t => t.status === 'achieved')
+                .reduce((sum, t) => sum + (t.bonus || 0), 0);
+            
+            const avgProgress = myTargets.length > 0 
+                ? Math.round(myTargets.reduce((sum, t) => sum + (((t.currentValue || 0) / t.targetValue) * 100), 0) / myTargets.length)
+                : 0;
+
+            document.getElementById('activeTargets').textContent = active;
+            document.getElementById('achievedTargets').textContent = achieved;
+            document.getElementById('totalBonus').textContent = formatCurrency(totalBonus);
+            document.getElementById('avgProgress').textContent = avgProgress + '%';
+
+            // Load list
+            const container = document.getElementById('targetsList');
+            if (myTargets.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-bullseye"></i>
+                        <p>Hələ hədəf təyin edilməyib</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const statusBadges = {
+                'active': '<span class="badge badge-warning">Davam edir</span>',
+                'achieved': '<span class="badge badge-success">Çatıldı</span>',
+                'missed': '<span class="badge badge-danger">Çatılmadı</span>'
+            };
+
+            container.innerHTML = myTargets.sort((a, b) => new Date(a.deadline) - new Date(b.deadline)).map(t => {
+                const progress = Math.min(100, Math.round(((t.currentValue || 0) / t.targetValue) * 100));
+                const isOverdue = new Date(t.deadline) < new Date() && t.status === 'active';
+                
+                return `
+                    <div class="list-group-item" style="${t.status === 'achieved' ? 'background: rgba(40,167,69,0.05);' : ''}">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 12px;">
+                            <div>
+                                <h4 style="margin: 0 0 4px 0;">${t.name}</h4>
+                                <small style="color: var(--gray);">${t.description || ''}</small>
+                            </div>
+                            <div style="text-align: right;">
+                                ${statusBadges[t.status]}
+                                <div style="margin-top: 4px; font-weight: 700; color: var(--success);">
+                                    ${formatCurrency(t.bonus)}
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div style="margin-bottom: 12px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Progress</span>
+                                <span style="${isOverdue ? 'color: var(--danger);' : ''}">${t.currentValue || 0}/${t.targetValue} ${t.unit}</span>
+                            </div>
+                            <div style="height: 10px; background: var(--gray-light); border-radius: 5px; overflow: hidden;">
+                                <div style="width: ${progress}%; height: 100%; background: ${progress >= 100 ? 'var(--success)' : isOverdue ? 'var(--danger)' : 'var(--primary)'}; transition: width 0.3s;"></div>
+                            </div>
+                            <div style="display: flex; justify-content: space-between; margin-top: 4px;">
+                                <small style="color: var(--gray);">${progress}%</small>
+                                <small style="color: ${isOverdue ? 'var(--danger)' : 'var(--gray)'};">
+                                    Son tarix: ${formatDate(t.deadline)} ${isOverdue ? '(Gecikib)' : ''}
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMyTargets);
+    </script>
+</body>
+</html>

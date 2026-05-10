@@ -1,0 +1,455 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layihələr - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Layihələr</h1><p>İnşaat layihələrinin idarəetməsi</p></div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openModal('addProjectModal')">
+                        <i class="bi bi-plus"></i> Yeni Layihə
+                    </button>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Layihə</h3>
+                            <p class="stat-value" id="totalProjects">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bitmiş</h3>
+                            <p class="stat-value" id="completedProjects">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Davam Edən</h3>
+                            <p class="stat-value" id="activeProjects">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi bi-currency-dollar"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Dəyər</h3>
+                            <p class="stat-value" id="totalValue">0 ₼</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Grid -->
+                <div class="dashboard-grid" id="projectsGrid">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Project Modal -->
+    <div class="modal" id="addProjectModal">
+        <div class="modal-content" style="max-width: 700px;">
+            <div class="modal-header">
+                <h3><i class="bi bi-building"></i> Yeni Layihə</h3>
+                <button class="modal-close" onclick="closeModal('addProjectModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addProjectForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Layihə Adı *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Müştəri *</label>
+                            <input type="text" name="client" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ünvan *</label>
+                            <input type="text" name="address" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Dəyər (₼)</label>
+                            <input type="number" name="value" class="form-control" min="0" step="0.01">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Başlama Tarixi *</label>
+                            <input type="date" name="startDate" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bitmə Tarixi</label>
+                            <input type="date" name="endDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Təsvir</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>İşçilər</label>
+                        <div id="workerSelection" style="max-height: 150px; overflow-y: auto; border: 1px solid var(--gray-light); border-radius: var(--radius); padding: 12px;">
+                            <!-- Workers will be loaded here -->
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addProjectModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="saveProject()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Project Modal -->
+    <div class="modal" id="viewProjectModal">
+        <div class="modal-content" style="max-width: 800px;">
+            <div class="modal-header">
+                <h3 id="viewProjectName">Layihə Detalları</h3>
+                <button class="modal-close" onclick="closeModal('viewProjectModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body" id="viewProjectContent">
+                <!-- Content will be loaded dynamically -->
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        // Initialize projects data
+        function initProjects() {
+            if (!localStorage.getItem('projects')) {
+                localStorage.setItem('projects', JSON.stringify([
+                    {
+                        id: 1,
+                        name: 'Yaşayış Kompleksi A',
+                        client: 'ABC İnşaat',
+                        address: 'Bakı, Yasamal rayonu',
+                        value: 500000,
+                        startDate: '2024-01-15',
+                        endDate: '2024-12-30',
+                        status: 'active',
+                        progress: 45,
+                        description: '12 mərtəbəli yaşayış binası',
+                        workers: [2, 3],
+                        createdAt: new Date().toISOString()
+                    },
+                    {
+                        id: 2,
+                        name: 'Ticarət Mərkəzi B',
+                        client: 'XYZ Holding',
+                        address: 'Bakı, Xətai rayonu',
+                        value: 1200000,
+                        startDate: '2024-03-01',
+                        endDate: '2025-06-30',
+                        status: 'active',
+                        progress: 20,
+                        description: '3 mərtəbəli ticarət mərkəzi',
+                        workers: [3, 4],
+                        createdAt: new Date().toISOString()
+                    }
+                ]));
+            }
+        }
+
+        function getProjects() {
+            return JSON.parse(localStorage.getItem('projects') || '[]');
+        }
+
+        function saveProjects(projects) {
+            localStorage.setItem('projects', JSON.stringify(projects));
+        }
+
+        // Load stats
+        function loadStats() {
+            const projects = getProjects();
+            const completed = projects.filter(p => p.status === 'completed').length;
+            const active = projects.filter(p => p.status === 'active').length;
+            const totalValue = projects.reduce((sum, p) => sum + (p.value || 0), 0);
+
+            document.getElementById('totalProjects').textContent = projects.length;
+            document.getElementById('completedProjects').textContent = completed;
+            document.getElementById('activeProjects').textContent = active;
+            document.getElementById('totalValue').textContent = formatCurrency(totalValue);
+        }
+
+        // Load worker selection
+        function loadWorkerSelection() {
+            const workers = getWorkers();
+            const container = document.getElementById('workerSelection');
+            container.innerHTML = workers.map(w => `
+                <label style="display: flex; align-items: center; gap: 8px; padding: 4px 0; cursor: pointer;">
+                    <input type="checkbox" name="workers" value="${w.id}">
+                    <span>${w.name} (${w.position})</span>
+                </label>
+            `).join('');
+        }
+
+        // Load projects grid
+        function loadProjects() {
+            const projects = getProjects();
+            const workers = getWorkers();
+            const container = document.getElementById('projectsGrid');
+
+            if (projects.length === 0) {
+                container.innerHTML = `
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-body" style="text-align: center; padding: 60px;">
+                            <i class="bi bi-building" style="font-size: 64px; color: var(--gray-light);"></i>
+                            <p style="margin-top: 16px; color: var(--gray);">Hələ layihə yoxdur</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = projects.map(p => {
+                const statusColors = {
+                    'active': 'var(--primary)',
+                    'completed': 'var(--success)',
+                    'paused': 'var(--warning)',
+                    'cancelled': 'var(--danger)'
+                };
+                const statusLabels = {
+                    'active': 'Davam edir',
+                    'completed': 'Bitmiş',
+                    'paused': 'Dayandırılıb',
+                    'cancelled': 'Ləğv edilib'
+                };
+
+                const assignedWorkers = p.workers?.map(id => workers.find(w => w.id === id)).filter(Boolean) || [];
+
+                return `
+                    <div class="card project-card" onclick="viewProject(${p.id})" style="cursor: pointer;">
+                        <div class="card-header" style="border-left: 4px solid ${statusColors[p.status]};">
+                            <div>
+                                <h3>${p.name}</h3>
+                                <small style="color: var(--gray);">${p.client}</small>
+                            </div>
+                            <span class="badge" style="background: ${statusColors[p.status]}20; color: ${statusColors[p.status]};">
+                                ${statusLabels[p.status]}
+                            </span>
+                        </div>
+                        <div class="card-body">
+                            <p style="color: var(--gray); margin-bottom: 16px;">
+                                <i class="bi bi-geo-alt"></i> ${p.address}
+                            </p>
+                            
+                            <div style="margin-bottom: 16px;">
+                                <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                    <span>Progress</span>
+                                    <span>${p.progress || 0}%</span>
+                                </div>
+                                <div style="height: 8px; background: var(--gray-light); border-radius: 4px; overflow: hidden;">
+                                    <div style="width: ${p.progress || 0}%; height: 100%; background: ${statusColors[p.status]}; transition: width 0.3s;"></div>
+                                </div>
+                            </div>
+
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <i class="bi bi-people"></i>
+                                    <span>${assignedWorkers.length} işçi</span>
+                                </div>
+                                <strong style="color: var(--primary);">${formatCurrency(p.value || 0)}</strong>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Save new project
+        function saveProject() {
+            const form = document.getElementById('addProjectForm');
+            const formData = new FormData(form);
+
+            const selectedWorkers = Array.from(form.querySelectorAll('input[name="workers"]:checked'))
+                .map(cb => parseInt(cb.value));
+
+            const projects = getProjects();
+            projects.push({
+                id: Date.now(),
+                name: formData.get('name'),
+                client: formData.get('client'),
+                address: formData.get('address'),
+                value: parseFloat(formData.get('value')) || 0,
+                startDate: formData.get('startDate'),
+                endDate: formData.get('endDate'),
+                description: formData.get('description'),
+                workers: selectedWorkers,
+                status: 'active',
+                progress: 0,
+                createdAt: new Date().toISOString()
+            });
+
+            saveProjects(projects);
+            closeModal('addProjectModal');
+            form.reset();
+            loadProjects();
+            loadStats();
+            showAlert('Layihə əlavə edildi', 'success');
+        }
+
+        // View project details
+        function viewProject(id) {
+            const project = getProjects().find(p => p.id === id);
+            if (!project) return;
+
+            const workers = getWorkers();
+            const assignedWorkers = project.workers?.map(wid => workers.find(w => w.id === wid)).filter(Boolean) || [];
+
+            document.getElementById('viewProjectName').textContent = project.name;
+            document.getElementById('viewProjectContent').innerHTML = `
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Müştəri</label>
+                        <p>${project.client}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Dəyər</label>
+                        <p>${formatCurrency(project.value || 0)}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Ünvan</label>
+                    <p>${project.address}</p>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Başlama Tarixi</label>
+                        <p>${formatDate(project.startDate)}</p>
+                    </div>
+                    <div class="form-group">
+                        <label>Bitmə Tarixi</label>
+                        <p>${project.endDate ? formatDate(project.endDate) : 'Qeyd edilməyib'}</p>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Təsvir</label>
+                    <p>${project.description || 'Qeyd edilməyib'}</p>
+                </div>
+                <div class="form-group">
+                    <label>Təyin Edilmiş İşçilər</label>
+                    <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                        ${assignedWorkers.length > 0 ? assignedWorkers.map(w => `
+                            <span class="badge badge-info">${w.name}</span>
+                        `).join('') : '<span class="text-muted">İşçi təyin edilməyib</span>'}
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Progress</label>
+                    <div style="display: flex; align-items: center; gap: 16px;">
+                        <input type="range" min="0" max="100" value="${project.progress || 0}" 
+                            onchange="updateProjectProgress(${project.id}, this.value)"
+                            style="flex: 1;">
+                        <span style="min-width: 50px; text-align: right;">${project.progress || 0}%</span>
+                    </div>
+                </div>
+                <div class="modal-footer" style="margin-top: 24px;">
+                    <button class="btn btn-secondary" onclick="closeModal('viewProjectModal')">Bağla</button>
+                    <button class="btn btn-success" onclick="updateProjectStatus(${project.id}, 'completed')">Bitmiş kimi qeyd et</button>
+                    <button class="btn btn-danger" onclick="deleteProject(${project.id})">Layihəni sil</button>
+                </div>
+            `;
+
+            openModal('viewProjectModal');
+        }
+
+        // Update project progress
+        function updateProjectProgress(id, progress) {
+            let projects = getProjects();
+            const idx = projects.findIndex(p => p.id === id);
+            if (idx !== -1) {
+                projects[idx].progress = parseInt(progress);
+                if (progress === '100') {
+                    projects[idx].status = 'completed';
+                }
+                saveProjects(projects);
+                loadProjects();
+            }
+        }
+
+        // Update project status
+        function updateProjectStatus(id, status) {
+            let projects = getProjects();
+            const idx = projects.findIndex(p => p.id === id);
+            if (idx !== -1) {
+                projects[idx].status = status;
+                if (status === 'completed') {
+                    projects[idx].progress = 100;
+                }
+                saveProjects(projects);
+                closeModal('viewProjectModal');
+                loadProjects();
+                loadStats();
+                showAlert('Layihə statusu yeniləndi', 'success');
+            }
+        }
+
+        // Delete project
+        function deleteProject(id) {
+            if (!confirm('Bu layihəni silmək istədiyinizə əminsiniz?')) return;
+            let projects = getProjects();
+            projects = projects.filter(p => p.id !== id);
+            saveProjects(projects);
+            closeModal('viewProjectModal');
+            loadProjects();
+            loadStats();
+            showAlert('Layihə silindi', 'success');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initProjects();
+            loadProjects();
+            loadStats();
+            loadWorkerSelection();
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,449 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İcazələrim - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div>
+                    <h2>555 İnşaat</h2>
+                    <small>İşçi Paneli</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="worker-dashboard.html" class="nav-item">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="worker-performance.html" class="nav-item">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Performansım</span>
+                </a>
+                <a href="worker-tasks.html" class="nav-item">
+                    <i class="bi bi-list-task"></i>
+                    <span>Tapşırıqlarım</span>
+                </a>
+                <a href="worker-salary.html" class="nav-item">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Maaşım</span>
+                </a>
+                <a href="worker-permissions.html" class="nav-item active">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>İcazələrim</span>
+                </a>
+                <a href="worker-shift-change.html" class="nav-item">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Növbə Dəyişmə</span>
+                </a>
+            </nav>
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>İcazələrim</h1>
+                    <p>İcazə sorğularım və tarixçə</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openRequestModal()">
+                        <i class="bi bi-plus"></i> Yeni İcazə
+                    </button>
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Weekly Free Day Info -->
+                <div class="card" style="background: linear-gradient(135deg, rgba(40,167,69,0.1) 0%, rgba(40,167,69,0.05) 100%); border-left: 4px solid var(--success);">
+                    <div class="card-body">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <i class="bi bi-info-circle-fill" style="font-size: 32px; color: var(--success);"></i>
+                            <div>
+                                <h4 style="margin-bottom: 4px; color: var(--success);">Həftəlik Ödənişsiz İcazə</h4>
+                                <p style="margin: 0; color: var(--gray);">Hər həftə <strong>1 gün ödənişsiz icazə</strong> hüququnuz var. Bu icazə maaşınızdan heç bir kəsinti olmadan istifadə edilə bilər. Əlavə icazələr ödənişli olaraq maaşdan kəsiləcəkdir.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Permission Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi İcazə</h3>
+                            <p class="stat-value" id="totalPermissions">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ödənişsiz (Həftəlik)</h3>
+                            <p class="stat-value" id="weeklyFreeCount">1 gün</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Gözləyən</h3>
+                            <p class="stat-value" id="pendingPermissions">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ödənişli İcazə</h3>
+                            <p class="stat-value" id="paidLeaveCount">0 gün</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="filterPermissions('all')">Hamısı</button>
+                    <button class="tab-btn" onclick="filterPermissions('pending')">Gözləyən</button>
+                    <button class="tab-btn" onclick="filterPermissions('approved')">Təsdiqlənən</button>
+                    <button class="tab-btn" onclick="filterPermissions('rejected')">Rədd Edilən</button>
+                </div>
+
+                <!-- Permissions List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-check"></i> İcazə Sorğularım</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Başlama</th>
+                                        <th>Bitmə</th>
+                                        <th>Gün</th>
+                                        <th>Növü</th>
+                                        <th>Səbəb</th>
+                                        <th>Status</th>
+                                        <th>Tarix</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="permissionsList">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Permission Request Modal -->
+    <div class="modal" id="requestModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="bi bi-calendar-plus"></i> Yeni İcazə Sorğusu</h3>
+                    <button class="btn-close" onclick="closeModal('requestModal')">&times;</button>
+                </div>
+                <form id="permissionForm" onsubmit="submitPermission(event)">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Başlama Tarixi *</label>
+                            <input type="date" class="form-control" name="startDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bitmə Tarixi *</label>
+                            <input type="date" class="form-control" name="endDate" required>
+                        </div>
+                        <div class="form-group">
+                            <label>İcazə Növü *</label>
+                            <select class="form-control" name="type" required onchange="updateLeaveInfo(this)">
+                                <option value="">Seçin</option>
+                                <option value="weekly_free">🎁 Həftəlik Ödənişsiz (1 gün)</option>
+                                <option value="paid">💰 Ödənişli İcazə (Maaşdan kəsiləcək)</option>
+                                <option value="unpaid">📝 Ödənişsiz İcazə</option>
+                                <option value="sick">🏥 Xəstəlik</option>
+                                <option value="family">👨‍👩‍👧‍👦 Ailə Səbəbi</option>
+                            </select>
+                            <small id="leaveInfo" class="form-text" style="margin-top: 8px; color: var(--gray);"></small>
+                        </div>
+                        <div class="form-group">
+                            <label>Səbəb *</label>
+                            <textarea class="form-control" name="reason" rows="3" placeholder="İcazə səbəbini qeyd edin..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('requestModal')">Ləğv et</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Göndər
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="worker-shell.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (currentUser && userRoleLanding(currentUser) !== 'worker') {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userPosition').textContent = currentUser.position;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        let currentFilter = 'all';
+        let myPermissions = [];
+
+        // Load permissions
+        function loadPermissions() {
+            if (!currentUser) return;
+
+            const permissions = getPermissions();
+            myPermissions = permissions.filter(p => p.workerId === currentUser.id);
+
+            // Update stats
+            document.getElementById('totalPermissions').textContent = myPermissions.length;
+            document.getElementById('pendingPermissions').textContent = myPermissions.filter(p => p.status === 'pending').length;
+            document.getElementById('approvedPermissions').textContent = myPermissions.filter(p => p.status === 'approved').length;
+            document.getElementById('rejectedPermissions').textContent = myPermissions.filter(p => p.status === 'rejected').length;
+
+            renderPermissions();
+        }
+
+        // Filter permissions
+        function filterPermissions(status) {
+            currentFilter = status;
+            
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderPermissions();
+        }
+
+        // Render permissions
+        function renderPermissions() {
+            const tbody = document.getElementById('permissionsList');
+            
+            let filtered = myPermissions;
+            if (currentFilter !== 'all') {
+                filtered = myPermissions.filter(p => p.status === currentFilter);
+            }
+
+            // Sort by date (newest first)
+            filtered.sort((a, b) => new Date(b.createdAt || b.startDate) - new Date(a.createdAt || a.startDate));
+
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">İcazə sorğusu yoxdur</td></tr>';
+                return;
+            }
+
+            const typeLabels = {
+                'weekly_free': '🎁 Həftəlik Ödənişsiz',
+                'paid': '💰 Ödənişli',
+                'unpaid': '📝 Ödənişsiz',
+                'sick': '🏥 Xəstəlik',
+                'family': '👨‍👩‍👧‍👦 Ailə'
+            };
+            
+            // Calculate weekly free day usage
+            const currentWeekStart = getWeekStart(new Date());
+            const weeklyFreeUsed = myPermissions.filter(p => {
+                if (p.type !== 'weekly_free' || p.status !== 'approved') return false;
+                const pStart = new Date(p.startDate);
+                return pStart >= currentWeekStart;
+            }).reduce((sum, p) => {
+                const start = new Date(p.startDate);
+                const end = new Date(p.endDate);
+                return sum + Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            }, 0);
+            
+            document.getElementById('weeklyFreeCount').textContent = weeklyFreeUsed >= 1 ? '0 gün (istifadə edildi)' : '1 gün';
+            
+            // Calculate paid leave days
+            const paidLeaveDays = myPermissions.filter(p => 
+                p.type === 'paid' && p.status === 'approved'
+            ).reduce((sum, p) => {
+                const start = new Date(p.startDate);
+                const end = new Date(p.endDate);
+                return sum + Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+            }, 0);
+            document.getElementById('paidLeaveCount').textContent = paidLeaveDays + ' gün';
+
+            const statusBadges = {
+                'pending': '<span class="badge badge-warning"><i class="bi bi-hourglass-split"></i> Gözləyir</span>',
+                'approved': '<span class="badge badge-success"><i class="bi bi-check-circle"></i> Təsdiqləndi</span>',
+                'rejected': '<span class="badge badge-danger"><i class="bi bi-x-circle"></i> Rədd edildi</span>'
+            };
+
+            tbody.innerHTML = filtered.map(p => {
+                const start = new Date(p.startDate);
+                const end = new Date(p.endDate);
+                const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                
+                return `
+                    <tr>
+                        <td>${formatDate(p.startDate)}</td>
+                        <td>${formatDate(p.endDate)}</td>
+                        <td>${days} gün</td>
+                        <td>${typeLabels[p.type] || p.type}</td>
+                        <td>${p.reason}</td>
+                        <td>${statusBadges[p.status]}</td>
+                        <td>${formatDate(p.createdAt || p.startDate)}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Open request modal
+        function openRequestModal() {
+            // Set min date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('input[name="startDate"]').min = today;
+            document.querySelector('input[name="endDate"]').min = today;
+            
+            openModal('requestModal');
+        }
+
+        // Submit permission request
+        function submitPermission(event) {
+            event.preventDefault();
+            
+            if (!currentUser) return;
+
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const startDate = formData.get('startDate');
+            const endDate = formData.get('endDate');
+            
+            // Validate dates
+            if (new Date(endDate) < new Date(startDate)) {
+                alert('Bitmə tarixi başlama tarixindən əvvəl ola bilməz!');
+                return;
+            }
+
+            const permissions = getPermissions();
+            
+            const newPermission = {
+                id: Date.now(),
+                workerId: currentUser.id,
+                startDate: startDate,
+                endDate: endDate,
+                type: formData.get('type'),
+                reason: formData.get('reason'),
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            permissions.push(newPermission);
+            saveData('permissions', permissions);
+
+            closeModal('requestModal');
+            form.reset();
+            loadPermissions();
+            
+            showNotification('İcazə sorğusu göndərildi', 'success');
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Update end date min when start date changes
+        document.querySelector('input[name="startDate"]')?.addEventListener('change', function() {
+            document.querySelector('input[name="endDate"]').min = this.value;
+        });
+
+        // Get week start date (Monday)
+        function getWeekStart(date) {
+            const d = new Date(date);
+            const day = d.getDay();
+            const diff = d.getDate() - day + (day === 0 ? -6 : 1);
+            return new Date(d.setDate(diff));
+        }
+
+        // Update leave info based on selection
+        function updateLeaveInfo(select) {
+            const info = document.getElementById('leaveInfo');
+            const startDateInput = document.querySelector('input[name="startDate"]');
+            const endDateInput = document.querySelector('input[name="endDate"]');
+            
+            switch(select.value) {
+                case 'weekly_free':
+                    info.innerHTML = '<span style="color: var(--success);"><i class="bi bi-check-circle"></i> Bu icazə maaşınızdan heç bir kəsinti olmadan istifadə edilə bilər. Həftədə yalnız 1 gün.</span>';
+                    // Limit to 1 day
+                    startDateInput.addEventListener('change', limitWeeklyFreeDay);
+                    break;
+                case 'paid':
+                    info.innerHTML = '<span style="color: var(--danger);"><i class="bi bi-exclamation-triangle"></i> Bu icazə günlük maaşınızdan kəsiləcəkdir.</span>';
+                    startDateInput.removeEventListener('change', limitWeeklyFreeDay);
+                    break;
+                case 'unpaid':
+                    info.innerHTML = '<span style="color: var(--gray);"><i class="bi bi-info-circle"></i> Bu icazə üçün maaş ödənişi edilməyəcək.</span>';
+                    startDateInput.removeEventListener('change', limitWeeklyFreeDay);
+                    break;
+                default:
+                    info.textContent = '';
+                    startDateInput.removeEventListener('change', limitWeeklyFreeDay);
+            }
+        }
+
+        // Limit weekly free day to 1 day
+        function limitWeeklyFreeDay() {
+            const startDate = document.querySelector('input[name="startDate"]').value;
+            if (startDate) {
+                document.querySelector('input[name="endDate"]').value = startDate;
+            }
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadPermissions);
+    </script>
+</body>
+</html>

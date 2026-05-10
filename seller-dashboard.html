@@ -1,0 +1,568 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Satıcı / Kassa - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Satıcı menyusu">
+            <div class="sidebar-brand">
+                <div class="sidebar-brand-mark"><i class="bi bi-wallet2"></i></div>
+                <div class="sidebar-brand-text">
+                    <span class="sidebar-brand-title">555 İnşaat</span>
+                    <span class="sidebar-brand-sub">Satıcı &amp; kassa</span>
+                </div>
+            </div>
+            <div class="sidebar-inner">
+                <nav class="sidebar-nav" aria-label="Əsas naviqasiya">
+                    <section class="nav-section">
+                        <h2 class="nav-section-title" id="nav-main">Panel</h2>
+                        <ul class="nav-section-items">
+                            <li><a href="seller-dashboard.html" class="nav-item active"><i class="bi bi-speedometer2" aria-hidden="true"></i><span>Ümumi</span></a></li>
+                            <li><a href="#gunun-meqesi" class="nav-item"><i class="bi bi-arrow-down-circle" aria-hidden="true"></i><span>Günün məntəqəsi</span></a></li>
+                            <li><a href="#kasa-emeliyyatlari" class="nav-item"><i class="bi bi-arrow-left-right" aria-hidden="true"></i><span id="navKassaLinkLabel">Mədaxil</span></a></li>
+                        </ul>
+                    </section>
+                </nav>
+            </div>
+            <div class="sidebar-user-card">
+                <div class="sidebar-user-avatar" id="sidebarAvatar" aria-hidden="true">?</div>
+                <div class="sidebar-user-meta">
+                    <strong id="sidebarUserName">—</strong>
+                    <small id="sidebarUserRole">—</small>
+                </div>
+                <button type="button" class="sidebar-logout sidebar-logout--labeled" onclick="logout()" title="Profildən çıxış">
+                    <i class="bi bi-box-arrow-right" aria-hidden="true"></i>
+                    <span class="sidebar-logout-label">Çıxış</span>
+                </button>
+            </div>
+        </aside>
+
+        <div id="sidebarOverlay" class="sidebar-overlay" aria-hidden="true"></div>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Satıcı / Kassa paneli</h1>
+                    <p id="sellerTopbarDesc">Kassa işində gün sonu <strong>mədaxil</strong> qeydləri aparılır.</p>
+                </div>
+                <div class="topbar-right">
+                    <button type="button" id="mobileMenuBtn" class="btn-icon mobile-menu-btn sidebar-toggle-mobile" aria-label="Menyunu aç/bağla">
+                        <i class="bi bi-layout-sidebar-inset-reverse"></i>
+                    </button>
+                    <button type="button" class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="card" style="margin-bottom: 20px; border-left: 4px solid var(--primary);">
+                    <div class="card-body" style="padding: 16px 20px;">
+                        <p style="margin: 0; font-size: 14px; color: var(--gray); line-height: 1.55;">
+                            <strong>Satıcı</strong> və <strong>kassir</strong> eyni paneldən işləyir. İş bölməsini dəyişəndə bu gün üçün məntəqəni seçin.
+                            <span id="sellerInfoMexaricExtra" class="kassa-mexaric-gated">
+                                «Kassa» seçildikdə nağd vəsaitin <strong>daxil olması</strong> (mədaxil) ilə yanaşı, icazə verildikdə real xərclər üçün <strong>məxaric</strong> də qeyd oluna bilər (rəsxod təsviri ilə).
+                            </span>
+                        </p>
+                    </div>
+                </div>
+
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="bi bi-calendar-check"></i></div>
+                        <div class="stat-info">
+                            <h3>Bu günün mövqesi</h3>
+                            <p class="stat-value" id="deskSummaryLabel">—</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i class="bi bi-arrow-down-circle"></i></div>
+                        <div class="stat-info">
+                            <h3>Mədaxil (bugün / say)</h3>
+                            <p class="stat-value" id="todayInCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue"><i class="bi bi-plus-circle"></i></div>
+                        <div class="stat-info">
+                            <h3>Mədaxil (bugün / cəm)</h3>
+                            <p class="stat-value" id="todayInTotal">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card kassa-mexaric-gated">
+                        <div class="stat-icon orange"><i class="bi bi-arrow-up-circle"></i></div>
+                        <div class="stat-info">
+                            <h3>Məxaric (bugün / say)</h3>
+                            <p class="stat-value" id="todayOutCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card kassa-mexaric-gated">
+                        <div class="stat-icon red"><i class="bi bi-dash-circle"></i></div>
+                        <div class="stat-info">
+                            <h3>Məxaric (bugün / cəm)</h3>
+                            <p class="stat-value" id="todayOutTotal">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card kassa-mexaric-gated">
+                        <div class="stat-icon cyan"><i class="bi bi-calculator"></i></div>
+                        <div class="stat-info">
+                            <h3>Xalis (bugün)</h3>
+                            <p class="stat-value" id="todayNetTotal">0 ₼</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="gunun-meqesi">
+                    <div class="card-header">
+                        <h3><i class="bi bi-geo-alt"></i> Bu günün iş məntəqəsi</h3>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: var(--gray); margin-bottom: 16px;">Tarix: <strong id="todayDateDisplay"></strong>. İş yerini dəyişəndə seçimi yeniləyin.</p>
+                        <div class="form-row" style="align-items: flex-end; gap: 16px; flex-wrap: wrap;">
+                            <div class="form-group" style="min-width: 220px;">
+                                <label>Məntəqə</label>
+                                <select id="deskSelect" class="form-control">
+                                    <option value="">— seçin —</option>
+                                    <option value="kassa" id="deskOptionKassaLabel">Kassa — mədaxil qeyd edə bilərəm</option>
+                                    <option value="diger">Digər mövqe — bu gün kassa üzrə deyiləm</option>
+                                </select>
+                            </div>
+                            <button type="button" class="btn btn-primary" id="saveDeskBtn">
+                                <i class="bi bi-check2-circle"></i> Bu gün üçün saxla
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card" id="kasa-emeliyyatlari">
+                    <!-- Köhnə keçidlər üçün (#kasa-medaxil) -->
+                    <span id="kasa-medaxil" aria-hidden="true" style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0);"></span>
+                    <div class="card-header">
+                        <h3 id="kasaSectionTitle"><i class="bi bi-arrow-down-left"></i> Kasa: mədaxil</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="kasaLocked" class="alert alert-warning" style="display: none;">
+                            Əməliyyatlar üçün yuxarıda <strong>«Kassa»</strong> mövqesini seçib saxlayın.
+                        </div>
+                        <div id="kasaFormsWrap" style="display: none;">
+                            <div id="kasaFormsGrid" class="dashboard-grid" style="grid-template-columns: 1fr 1fr; gap: 24px;">
+                                <div class="card" style="box-shadow: none; border: 1px solid var(--gray-light);">
+                                    <div class="card-header" style="padding: 14px 18px;">
+                                        <h4 style="margin: 0; font-size: 15px;"><i class="bi bi-arrow-down-left text-success"></i> Mədaxil</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <form id="depositForm">
+                                            <div class="form-group">
+                                                <label>Tarix *</label>
+                                                <input type="date" name="date" class="form-control" required id="depositDate">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Məbləğ (₼) *</label>
+                                                <input type="number" name="amount" class="form-control" min="0" step="0.01" placeholder="0.00" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Ödəniş növü</label>
+                                                <select name="method" class="form-control">
+                                                    <option value="nagd">Nağd</option>
+                                                    <option value="kart">Kart / POS</option>
+                                                    <option value="kocurme">Köçürmə</option>
+                                                    <option value="mix">Digər / qarışıq</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Qeyd</label>
+                                                <textarea name="note" class="form-control" rows="2" placeholder="Məs: növbə, çek nömrəsi"></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-primary btn-block">
+                                                <i class="bi bi-plus-circle"></i> Mədaxili qeydə al
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                <div class="card kassa-mexaric-gated" style="box-shadow: none; border: 1px solid var(--gray-light);">
+                                    <div class="card-header" style="padding: 14px 18px;">
+                                        <h4 style="margin: 0; font-size: 15px;"><i class="bi bi-arrow-up-right text-danger"></i> Məxaric (rəsxod)</h4>
+                                    </div>
+                                    <div class="card-body">
+                                        <p style="font-size: 13px; color: var(--gray); margin: -4px 0 12px;">Yalnız real xərclər olduqda doldurun; məbləğ və təsviri yazın.</p>
+                                        <form id="expenseForm">
+                                            <div class="form-group">
+                                                <label>Tarix *</label>
+                                                <input type="date" name="date" class="form-control" required id="expenseDate">
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Rəsxod növü *</label>
+                                                <select name="expenseCategory" class="form-control" required>
+                                                    <option value="">— seçin —</option>
+                                                    <option value="material">Mal-material</option>
+                                                    <option value="emek_haqqi_elave">İşçi / əmək haqqı əlavəsi</option>
+                                                    <option value="neqliyyat">Nəqliyyat</option>
+                                                    <option value="kommunal">Kommunal / ofis</option>
+                                                    <option value="qida">Qida / içki</option>
+                                                    <option value="satis_odemis">Satınalma ödənişi</option>
+                                                    <option value="diger">Digər rəsxod</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Məbləğ (₼) *</label>
+                                                <input type="number" name="amount" class="form-control" min="0.01" step="0.01" placeholder="0.00" required>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Ödəniş üsulu</label>
+                                                <select name="method" class="form-control">
+                                                    <option value="nagd">Nağd</option>
+                                                    <option value="kart">Kart</option>
+                                                    <option value="kocurme">Köçürmə</option>
+                                                    <option value="mix">Digər</option>
+                                                </select>
+                                            </div>
+                                            <div class="form-group">
+                                                <label>Rəsxod təsviri / qeyd *</label>
+                                                <textarea name="note" class="form-control" rows="3" placeholder="Nəyə xərcləndi, kimi aldı, sənəd və s." required></textarea>
+                                            </div>
+                                            <button type="submit" class="btn btn-danger btn-block">
+                                                <i class="bi bi-dash-circle"></i> Məxarici qeydə al
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 28px;">
+                            <h4 style="margin-bottom: 12px; font-size: 16px;">Son əməliyyatlar</h4>
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tip</th>
+                                            <th>Tarix</th>
+                                            <th>Məbləğ</th>
+                                            <th>Kateqoriya / növ</th>
+                                            <th>Qeyd edən</th>
+                                            <th>Qeyd</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="transactionsBody">
+                                        <tr><td colspan="6" class="text-center">Məlumat yoxdur</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <style>
+        .stat-icon.red { background: linear-gradient(135deg, #ef4444, #b91c1c); color: #fff; }
+        .stat-icon.cyan { background: linear-gradient(135deg, #06b6d4, #0891b2); color: #fff; }
+        .text-success { color: var(--success); }
+        .text-danger { color: var(--danger); }
+        .kassa-mexaric-hidden { display: none !important; }
+        #kasaFormsWrap .btn-block { width: 100%; }
+        @media (max-width: 900px) {
+            #kasaFormsGrid.dashboard-grid { grid-template-columns: 1fr !important; }
+        }
+    </style>
+
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="seller-desk.js"></script>
+    <script src="kassa-settings.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (!currentUser) {
+            window.location.href = 'login.html';
+        } else if (userRoleLanding(currentUser) !== 'seller') {
+            window.location.href =
+              userRoleLanding(currentUser) === 'admin' ? 'dashboard.html' : 'worker-dashboard.html';
+        }
+
+        const methodLabels = { nagd: 'Nağd', kart: 'Kart/POS', kocurme: 'Köçürmə', mix: 'Digər' };
+        const expenseCatLabels = {
+            material: 'Mal-material',
+            emek_haqqi_elave: 'İşçi / əmək əlavəsi',
+            neqliyyat: 'Nəqliyyat',
+            kommunal: 'Kommunal / ofis',
+            qida: 'Qida / içki',
+            satis_odemis: 'Satınalma ödənişi',
+            diger: 'Digər rəsxod'
+        };
+
+        function deskLabel(d) {
+            if (d === 'kassa') return 'Kassa';
+            if (d === 'diger') return 'Digər mövqe';
+            return 'Seçilməyib';
+        }
+
+        function mexaricAllowed() {
+            return typeof KassaSettings !== 'undefined' && KassaSettings.isMexaricEnabled();
+        }
+
+        /** Admin dashboard-da keçid: məxaric bölməsi və statistikalar */
+        function applyMexaricVisibility() {
+            const on = mexaricAllowed();
+            document.querySelectorAll('.kassa-mexaric-gated').forEach((el) => {
+                el.classList.toggle('kassa-mexaric-hidden', !on);
+            });
+
+            const grid = document.getElementById('kasaFormsGrid');
+            if (grid) grid.style.gridTemplateColumns = on ? '1fr 1fr' : '1fr';
+
+            const navLbl = document.getElementById('navKassaLinkLabel');
+            if (navLbl) navLbl.textContent = on ? 'Mədaxil / məxaric' : 'Mədaxil';
+
+            const deskOpt = document.getElementById('deskOptionKassaLabel');
+            if (deskOpt) {
+                deskOpt.textContent = on
+                    ? 'Kassa — mədaxil və məxaric qeyd edə bilərəm'
+                    : 'Kassa — yalnız mədaxil qeyd edə bilərəm';
+            }
+
+            const tit = document.getElementById('kasaSectionTitle');
+            if (tit) {
+                tit.innerHTML = on
+                    ? '<i class="bi bi-arrow-left-right"></i> Kasa: mədaxil və məxaric (rəsxod)'
+                    : '<i class="bi bi-arrow-down-left"></i> Kasa: mədaxil';
+            }
+
+            const top = document.getElementById('sellerTopbarDesc');
+            if (top) {
+                top.innerHTML = on
+                    ? 'Kassa işində gün sonu <strong>mədaxil</strong> və lazım olduqda <strong>məxaric (rəsxod)</strong> qeydləri aparılır.'
+                    : 'Kassa işində gün sonu <strong>mədaxil</strong> qeydləri aparılır. <strong>Məxaric</strong> yalnız admin aktiv etdikdə görünür.';
+            }
+        }
+
+        function renderSidebarUser() {
+            const name = currentUser.name || currentUser.username || 'İstifadəçi';
+            const letter = String(name).trim().charAt(0).toUpperCase();
+            document.getElementById('sidebarAvatar').textContent = letter;
+            document.getElementById('sidebarUserName').textContent = name;
+            const r = currentUser.role === 'cashier' ? 'Kassir hesabı' : 'Satıcı hesabı';
+            document.getElementById('sidebarUserRole').textContent = r;
+        }
+
+        function syncDeskUI() {
+            const d = SellerDesk.getTodayDesk();
+            const deskSelect = document.getElementById('deskSelect');
+            const deskSummary = document.getElementById('deskSummaryLabel');
+            const lockedEl = document.querySelector('#kasaLocked, #depositLocked');
+            const wrapEl = document.querySelector('#kasaFormsWrap, #depositFormWrap');
+
+            if (deskSelect) deskSelect.value = d || '';
+            if (deskSummary) deskSummary.textContent = deskLabel(d);
+
+            const locked = d !== 'kassa';
+            if (lockedEl) lockedEl.style.display = locked ? 'block' : 'none';
+            if (wrapEl) wrapEl.style.display = locked ? 'none' : 'block';
+        }
+
+        function directionLabel(row) {
+            const dir = row.direction || 'in';
+            return dir === 'out'
+                ? '<span class="badge badge-danger">Məxaric</span>'
+                : '<span class="badge badge-success">Mədaxil</span>';
+        }
+
+        function categoryCell(row) {
+            if ((row.direction || 'in') === 'out') {
+                const c = row.expenseCategory || 'diger';
+                return escapeHtml(expenseCatLabels[c] || c) + ' · ' + escapeHtml(methodLabels[row.method] || row.method || '');
+            }
+            return escapeHtml(methodLabels[row.method] || row.method || '');
+        }
+
+        function amountCell(row) {
+            const n = parseFloat(row.amount) || 0;
+            const fc = typeof formatCurrency === 'function' ? formatCurrency(n) : `${n.toFixed(2)} ₼`;
+            if ((row.direction || 'in') === 'out') {
+                return '<span style="color: var(--danger); font-weight: 600;">− ' + fc + '</span>';
+            }
+            return '<span style="color: var(--success); font-weight: 600;">+ ' + fc + '</span>';
+        }
+
+        function refreshTransactionsTable() {
+            const tbody = document.getElementById('transactionsBody');
+            const list = SellerDesk.getTransactions().slice().reverse();
+            const displayList = mexaricAllowed()
+                ? list
+                : list.filter((x) => (x.direction || 'in') !== 'out');
+            const today = SellerDesk.todayStr();
+
+            const todayIn = list.filter((x) => x.date === today && (x.direction || 'in') === 'in');
+            const todayOut = list.filter((x) => x.date === today && x.direction === 'out');
+
+            const elInCnt = document.getElementById('todayInCount');
+            const elOutCnt = document.getElementById('todayOutCount');
+            const elInTot = document.getElementById('todayInTotal');
+            const elOutTot = document.getElementById('todayOutTotal');
+            const netEl = document.getElementById('todayNetTotal');
+
+            if (elInCnt) elInCnt.textContent = String(todayIn.length);
+            if (elOutCnt) elOutCnt.textContent = String(todayOut.length);
+
+            const sumIn = todayIn.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
+            const sumOut = todayOut.reduce((s, x) => s + (parseFloat(x.amount) || 0), 0);
+
+            if (elInTot)
+                elInTot.textContent =
+                    typeof formatCurrency === 'function' ? formatCurrency(sumIn) : `${sumIn.toFixed(2)} ₼`;
+            if (elOutTot)
+                elOutTot.textContent =
+                    typeof formatCurrency === 'function' ? formatCurrency(sumOut) : `${sumOut.toFixed(2)} ₼`;
+
+            const net = sumIn - sumOut;
+            if (netEl) {
+                netEl.textContent =
+                    typeof formatCurrency === 'function' ? formatCurrency(net) : `${net.toFixed(2)} ₼`;
+                netEl.style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
+            }
+
+            if (!tbody) return;
+
+            if (displayList.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Məlumat yoxdur</td></tr>';
+                return;
+            }
+            tbody.innerHTML = displayList.slice(0, 80).map((row) => `
+                <tr>
+                    <td>${directionLabel(row)}</td>
+                    <td>${escapeHtml(row.date)}</td>
+                    <td>${amountCell(row)}</td>
+                    <td>${categoryCell(row)}</td>
+                    <td>${escapeHtml(row.enteredByName || '')}</td>
+                    <td>${escapeHtml(row.note || '')}</td>
+                </tr>
+            `).join('');
+        }
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s == null ? '' : String(s);
+            return d.innerHTML;
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type === 'success' ? 'success' : 'info'}`;
+            notification.innerHTML =
+                `<i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'}"></i><span>${escapeHtml(message)}</span>`;
+            document.body.appendChild(notification);
+            setTimeout(() => notification.remove(), 3000);
+        }
+
+        document.getElementById('todayDateDisplay').textContent = SellerDesk.todayStr();
+        document.getElementById('depositDate').value = SellerDesk.todayStr();
+        document.getElementById('expenseDate').value = SellerDesk.todayStr();
+
+        document.getElementById('saveDeskBtn').addEventListener('click', () => {
+            const v = document.getElementById('deskSelect').value;
+            if (!v) {
+                alert('Zəhmət olmasa məntəqə seçin.');
+                return;
+            }
+            SellerDesk.setTodayDesk(v);
+            syncDeskUI();
+            refreshTransactionsTable();
+            showNotification('Bu gün üçün iş məntəqəsi saxlanıldı.', 'success');
+        });
+
+        document.getElementById('depositForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (SellerDesk.getTodayDesk() !== 'kassa') return;
+
+            const fd = new FormData(e.target);
+            const amount = parseFloat(fd.get('amount'));
+            if (!(amount >= 0)) {
+                alert('Məbləğ düzgün deyil.');
+                return;
+            }
+
+            SellerDesk.addTransaction({
+                id: Date.now(),
+                date: fd.get('date'),
+                amount,
+                direction: 'in',
+                txKind: 'medaxil',
+                method: fd.get('method'),
+                note: (fd.get('note') || '').trim(),
+                enteredAt: new Date().toISOString(),
+                enteredById: currentUser.id,
+                enteredByName: currentUser.name || currentUser.username,
+                accountRole: currentUser.role,
+                todayDesk: 'kassa'
+            });
+
+            e.target.reset();
+            document.getElementById('depositDate').value = SellerDesk.todayStr();
+            refreshTransactionsTable();
+            showNotification('Mədaxil qeydə alındı.', 'success');
+        });
+
+        document.getElementById('expenseForm').addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (!mexaricAllowed()) {
+                alert('Məxaric (rəsxod) admin tərəfindən aktiv deyil. İdarə panelində parametri yandırın.');
+                return;
+            }
+            if (SellerDesk.getTodayDesk() !== 'kassa') return;
+
+            const fd = new FormData(e.target);
+            const amount = parseFloat(fd.get('amount'));
+            if (!(amount > 0)) {
+                alert('Məxaric üçün məbləğ 0-dan böyük olmalıdır.');
+                return;
+            }
+            const note = (fd.get('note') || '').trim();
+            if (!note) {
+                alert('Rəsxod təsviri yazın.');
+                return;
+            }
+
+            SellerDesk.addTransaction({
+                id: Date.now(),
+                date: fd.get('date'),
+                amount,
+                direction: 'out',
+                txKind: 'mexaric',
+                expenseCategory: fd.get('expenseCategory'),
+                method: fd.get('method'),
+                note,
+                enteredAt: new Date().toISOString(),
+                enteredById: currentUser.id,
+                enteredByName: currentUser.name || currentUser.username,
+                accountRole: currentUser.role,
+                todayDesk: 'kassa'
+            });
+
+            e.target.reset();
+            document.getElementById('expenseDate').value = SellerDesk.todayStr();
+            refreshTransactionsTable();
+            showNotification('Məxaric (rəsxod) qeydə alındı.', 'success');
+        });
+
+        window.addEventListener('storage', (ev) => {
+            if (typeof KassaSettings !== 'undefined' && ev.key === KassaSettings.STORAGE_KEY) {
+                applyMexaricVisibility();
+                syncDeskUI();
+                refreshTransactionsTable();
+            }
+        });
+
+        renderSidebarUser();
+        applyMexaricVisibility();
+        syncDeskUI();
+        refreshTransactionsTable();
+    </script>
+</body>
+</html>

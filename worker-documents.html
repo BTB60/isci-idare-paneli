@@ -1,0 +1,219 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sənədlərim - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div><h2>555 İnşaat</h2><small>İşçi Paneli</small></div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="worker-dashboard.html" class="nav-item"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+                <a href="worker-performance.html" class="nav-item"><i class="bi bi-graph-up"></i><span>Performansım</span></a>
+                <a href="worker-tasks.html" class="nav-item"><i class="bi bi-list-task"></i><span>Tapşırıqlarım</span></a>
+                <a href="worker-projects.html" class="nav-item"><i class="bi bi-building"></i><span>Layihələrim</span></a>
+                <a href="worker-overtime.html" class="nav-item"><i class="bi bi-clock-fill"></i><span>Məsai</span></a>
+                <a href="worker-advances.html" class="nav-item"><i class="bi bi-cash-coin"></i><span>Avanslarım</span></a>
+                <a href="worker-salary.html" class="nav-item"><i class="bi bi-cash-stack"></i><span>Maaşım</span></a>
+                <a href="worker-targets.html" class="nav-item"><i class="bi bi-bullseye"></i><span>Hədəflərim</span></a>
+                <a href="worker-permissions.html" class="nav-item"><i class="bi bi-calendar-check"></i><span>İcazələrim</span></a>
+                <a href="worker-documents.html" class="nav-item active"><i class="bi bi-file-earmark-text"></i><span>Sənədlərim</span></a>
+                <a href="worker-shift-change.html" class="nav-item"><i class="bi bi-arrow-left-right"></i><span>Növbə Dəyişmə</span></a>
+            </nav>
+         
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Sənədlərim</h1><p>Şəxsi sənədlərim və müqavilələrim</p></div>
+                <div class="topbar-right">
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Sənəd</h3>
+                            <p class="stat-value" id="totalDocuments">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-file-earmark-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aktiv</h3>
+                            <p class="stat-value" id="activeDocuments">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-calendar-x"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bitmək Üzrə</h3>
+                            <p class="stat-value" id="expiringSoon">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bitmiş</h3>
+                            <p class="stat-value" id="expired">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-folder"></i> Sənəd Siyahısı</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="documentsList">
+                            <!-- Documents will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="worker-shell.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (!currentUser) window.location.href = 'login.html';
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        function getDocuments() {
+            return JSON.parse(localStorage.getItem('documents') || '[]');
+        }
+
+        // Load my documents
+        function loadMyDocuments() {
+            const allDocuments = getDocuments();
+            const myDocuments = allDocuments.filter(d => d.workerId === currentUser.id);
+
+            // Calculate stats
+            const today = new Date();
+            const thirtyDaysFromNow = new Date();
+            thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+            const active = myDocuments.filter(d => {
+                if (!d.expiryDate) return true;
+                return new Date(d.expiryDate) > today;
+            }).length;
+
+            const expiringSoon = myDocuments.filter(d => {
+                if (!d.expiryDate) return false;
+                const expiry = new Date(d.expiryDate);
+                return expiry > today && expiry <= thirtyDaysFromNow;
+            }).length;
+
+            const expired = myDocuments.filter(d => {
+                if (!d.expiryDate) return false;
+                return new Date(d.expiryDate) < today;
+            }).length;
+
+            document.getElementById('totalDocuments').textContent = myDocuments.length;
+            document.getElementById('activeDocuments').textContent = active;
+            document.getElementById('expiringSoon').textContent = expiringSoon;
+            document.getElementById('expired').textContent = expired;
+
+            // Load list
+            const container = document.getElementById('documentsList');
+            if (myDocuments.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-folder"></i>
+                        <p>Hələ sənəd əlavə edilməyib</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const typeIcons = {
+                'contract': 'file-earmark-text',
+                'id': 'card-text',
+                'certificate': 'award',
+                'medical': 'heart-pulse',
+                'other': 'file-earmark'
+            };
+
+            const typeLabels = {
+                'contract': 'Müqavilə',
+                'id': 'Şəxsiyyət Vəsiqəsi',
+                'certificate': 'Sertifikat',
+                'medical': 'Tibbi Sənəd',
+                'other': 'Digər'
+            };
+
+            container.innerHTML = myDocuments.sort((a, b) => new Date(b.date) - new Date(a.date)).map(d => {
+                let statusBadge = '<span class="badge badge-success">Aktiv</span>';
+                let statusClass = '';
+                
+                if (d.expiryDate) {
+                    const expiry = new Date(d.expiryDate);
+                    if (expiry < today) {
+                        statusBadge = '<span class="badge badge-danger">Bitmiş</span>';
+                        statusClass = 'style="background: rgba(220,53,69,0.05);"';
+                    } else if (expiry <= thirtyDaysFromNow) {
+                        statusBadge = '<span class="badge badge-warning">Bitmək üzrə</span>';
+                        statusClass = 'style="background: rgba(255,193,7,0.05);"';
+                    }
+                }
+
+                return `
+                    <div class="list-group-item" ${statusClass}>
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <div style="width: 48px; height: 48px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center;">
+                                <i class="bi bi-${typeIcons[d.type] || 'file-earmark'}" style="color: var(--primary); font-size: 24px;"></i>
+                            </div>
+                            <div style="flex: 1;">
+                                <div style="display: flex; justify-content: space-between; align-items: start;">
+                                    <div>
+                                        <h4 style="margin: 0 0 4px 0;">${d.name}</h4>
+                                        <small style="color: var(--gray);">${typeLabels[d.type] || d.type}${d.number ? ` • ${d.number}` : ''}</small>
+                                    </div>
+                                    ${statusBadge}
+                                </div>
+                                <div style="margin-top: 8px; display: flex; gap: 16px; color: var(--gray); font-size: 14px;">
+                                    <span><i class="bi bi-calendar"></i> ${formatDate(d.date)}</span>
+                                    ${d.expiryDate ? `<span><i class="bi bi-calendar-x"></i> Bitmə: ${formatDate(d.expiryDate)}</span>` : ''}
+                                </div>
+                                ${d.notes ? `<p style="margin: 8px 0 0 0; color: var(--gray); font-size: 14px;">${d.notes}</p>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMyDocuments);
+    </script>
+</body>
+</html>

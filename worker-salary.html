@@ -1,0 +1,363 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maaşım - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div>
+                    <h2>555 İnşaat</h2>
+                    <small>İşçi Paneli</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="worker-dashboard.html" class="nav-item">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="worker-performance.html" class="nav-item">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Performansım</span>
+                </a>
+                <a href="worker-tasks.html" class="nav-item">
+                    <i class="bi bi-list-task"></i>
+                    <span>Tapşırıqlarım</span>
+                </a>
+                <a href="worker-salary.html" class="nav-item active">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Maaşım</span>
+                </a>
+                <a href="worker-permissions.html" class="nav-item">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>İcazələrim</span>
+                </a>
+                <a href="worker-shift-change.html" class="nav-item">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Növbə Dəyişmə</span>
+                </a>
+            </nav>
+
+         
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Maaşım</h1>
+                    <p>Maaş və ödəniş məlumatları</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Current Month Salary Card -->
+                <div class="card highlight-card">
+                    <div class="card-body">
+                        <div class="salary-highlight">
+                            <div class="salary-info">
+                                <small>Cari Ay Yekun Maaş</small>
+                                <h2 id="currentMonthTotal">0 ₼</h2>
+                                <p id="currentMonthLabel">Mart 2025</p>
+                            </div>
+                            <div class="salary-icon">
+                                <i class="bi bi-wallet2"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salary Breakdown -->
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-calculator"></i> Maaş Hesablanması</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="salary-breakdown">
+                                <div class="breakdown-row">
+                                    <div class="breakdown-label">
+                                        <i class="bi bi-cash"></i>
+                                        <span>Günlük Maaş</span>
+                                    </div>
+                                    <div class="breakdown-value" id="dailySalary">0 ₼</div>
+                                </div>
+                                <div class="breakdown-row">
+                                    <div class="breakdown-label">
+                                        <i class="bi bi-calendar-check"></i>
+                                        <span>İşlədiyi Gün</span>
+                                    </div>
+                                    <div class="breakdown-value" id="workDays">0 gün</div>
+                                </div>
+                                <div class="breakdown-row subtotal">
+                                    <div class="breakdown-label">Əsas Maaş</div>
+                                    <div class="breakdown-value" id="baseSalary">0 ₼</div>
+                                </div>
+                                <div class="breakdown-row bonus">
+                                    <div class="breakdown-label">
+                                        <i class="bi bi-gift"></i>
+                                        <span>Bonus</span>
+                                    </div>
+                                    <div class="breakdown-value text-success">+ <span id="bonusAmount">0</span> ₼</div>
+                                </div>
+                                <div class="breakdown-row penalty">
+                                    <div class="breakdown-label">
+                                        <i class="bi bi-exclamation-triangle"></i>
+                                        <span>Cərimə</span>
+                                    </div>
+                                    <div class="breakdown-value text-danger">- <span id="penaltyAmount">0</span> ₼</div>
+                                </div>
+                                <div class="breakdown-row total">
+                                    <div class="breakdown-label">Yekun Maaş</div>
+                                    <div class="breakdown-value" id="totalSalary">0 ₼</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Salary Stats -->
+                    <div>
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="bi bi-graph-up"></i> Statistika</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="mini-stats">
+                                    <div class="mini-stat">
+                                        <div class="mini-stat-icon bg-success">
+                                            <i class="bi bi-gift"></i>
+                                        </div>
+                                        <div class="mini-stat-info">
+                                            <span class="mini-stat-label">Ümumi Bonus</span>
+                                            <span class="mini-stat-value text-success" id="totalBonus">0 ₼</span>
+                                        </div>
+                                    </div>
+                                    <div class="mini-stat">
+                                        <div class="mini-stat-icon bg-danger">
+                                            <i class="bi bi-exclamation-triangle"></i>
+                                        </div>
+                                        <div class="mini-stat-info">
+                                            <span class="mini-stat-label">Ümumi Cərimə</span>
+                                            <span class="mini-stat-value text-danger" id="totalPenalty">0 ₼</span>
+                                        </div>
+                                    </div>
+                                    <div class="mini-stat">
+                                        <div class="mini-stat-icon bg-info">
+                                            <i class="bi bi-calendar"></i>
+                                        </div>
+                                        <div class="mini-stat-info">
+                                            <span class="mini-stat-label">Ortalama Maaş</span>
+                                            <span class="mini-stat-value" id="avgSalary">0 ₼</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Month Filter -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="bi bi-funnel"></i> Ay Seçimi</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="form-row">
+                                    <div class="form-group">
+                                        <label>Ay</label>
+                                        <select class="form-control" id="filterMonth" onchange="loadSalary()">
+                                            <option value="1">Yanvar</option>
+                                            <option value="2">Fevral</option>
+                                            <option value="3" selected>Mart</option>
+                                            <option value="4">Aprel</option>
+                                            <option value="5">May</option>
+                                            <option value="6">İyun</option>
+                                            <option value="7">İyul</option>
+                                            <option value="8">Avqust</option>
+                                            <option value="9">Sentyabr</option>
+                                            <option value="10">Oktyabr</option>
+                                            <option value="11">Noyabr</option>
+                                            <option value="12">Dekabr</option>
+                                        </select>
+                                    </div>
+                                    <div class="form-group">
+                                        <label>İl</label>
+                                        <select class="form-control" id="filterYear" onchange="loadSalary()">
+                                            <option value="2024">2024</option>
+                                            <option value="2025" selected>2025</option>
+                                            <option value="2026">2026</option>
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Salary History -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-clock-history"></i> Maaş Tarixçəsi</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Ay</th>
+                                        <th>İş Günü</th>
+                                        <th>Əsas Maaş</th>
+                                        <th>Bonus</th>
+                                        <th>Cərimə</th>
+                                        <th>Yekun</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="salaryHistory">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="worker-shell.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (currentUser && userRoleLanding(currentUser) !== 'worker') {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userPosition').textContent = currentUser.position;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        // Set current month/year
+        const now = new Date();
+        document.getElementById('filterMonth').value = now.getMonth() + 1;
+        document.getElementById('filterYear').value = now.getFullYear();
+
+        // Load salary data
+        function loadSalary() {
+            if (!currentUser) return;
+
+            const month = parseInt(document.getElementById('filterMonth').value);
+            const year = parseInt(document.getElementById('filterYear').value);
+            const workerId = currentUser.id;
+
+            const salaries = getSalaries();
+            const performance = getPerformance();
+            const penalties = getPenalties();
+
+            // Get salary record for selected month
+            let salary = salaries.find(s => s.workerId === workerId && s.month === month && s.year === year);
+
+            // Calculate work days from performance
+            const monthPerformance = performance.filter(p => {
+                const pDate = new Date(p.date);
+                return p.workerId === workerId && pDate.getMonth() + 1 === month && pDate.getFullYear() === year;
+            });
+
+            const workDays = monthPerformance.filter(p => p.status === 'present' || p.status === 'late').length;
+            const dailySalary = currentUser.dailySalary || 50;
+            const baseSalary = dailySalary * workDays;
+
+            // Get penalties for month
+            const monthPenalties = penalties.filter(p => {
+                const pDate = new Date(p.date);
+                return p.workerId === workerId && pDate.getMonth() + 1 === month && pDate.getFullYear() === year;
+            });
+            const penaltyAmount = monthPenalties.reduce((sum, p) => sum + p.amount, 0);
+
+            // Use saved salary or calculate
+            const bonusAmount = salary ? salary.bonus : 0;
+            const totalSalary = baseSalary + bonusAmount - penaltyAmount;
+
+            // Update UI
+            const monthNames = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
+            document.getElementById('currentMonthLabel').textContent = `${monthNames[month - 1]} ${year}`;
+            document.getElementById('currentMonthTotal').textContent = formatCurrency(totalSalary);
+
+            document.getElementById('dailySalary').textContent = formatCurrency(dailySalary);
+            document.getElementById('workDays').textContent = workDays + ' gün';
+            document.getElementById('baseSalary').textContent = formatCurrency(baseSalary);
+            document.getElementById('bonusAmount').textContent = bonusAmount;
+            document.getElementById('penaltyAmount').textContent = penaltyAmount;
+            document.getElementById('totalSalary').textContent = formatCurrency(totalSalary);
+
+            // Calculate all-time stats
+            const allSalaries = salaries.filter(s => s.workerId === workerId);
+            const allPenalties = penalties.filter(p => p.workerId === workerId);
+
+            const totalBonus = allSalaries.reduce((sum, s) => sum + (s.bonus || 0), 0);
+            const totalPenalty = allPenalties.reduce((sum, p) => sum + p.amount, 0);
+            const avgSalary = allSalaries.length > 0 
+                ? allSalaries.reduce((sum, s) => sum + s.total, 0) / allSalaries.length 
+                : 0;
+
+            document.getElementById('totalBonus').textContent = formatCurrency(totalBonus);
+            document.getElementById('totalPenalty').textContent = formatCurrency(totalPenalty);
+            document.getElementById('avgSalary').textContent = formatCurrency(avgSalary);
+
+            // Load salary history
+            loadSalaryHistory(salaries, workerId);
+        }
+
+        // Load salary history
+        function loadSalaryHistory(salaries, workerId) {
+            const tbody = document.getElementById('salaryHistory');
+            const workerSalaries = salaries.filter(s => s.workerId === workerId).sort((a, b) => {
+                if (a.year !== b.year) return b.year - a.year;
+                return b.month - a.month;
+            });
+
+            const monthNames = ['Yanvar', 'Fevral', 'Mart', 'Aprel', 'May', 'İyun', 'İyul', 'Avqust', 'Sentyabr', 'Oktyabr', 'Noyabr', 'Dekabr'];
+
+            if (workerSalaries.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Məlumat yoxdur</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = workerSalaries.map(s => {
+                const baseSalary = (s.dailySalary || 50) * (s.workDays || 0);
+                return `
+                    <tr>
+                        <td>${monthNames[s.month - 1]} ${s.year}</td>
+                        <td>${s.workDays || 0} gün</td>
+                        <td>${formatCurrency(baseSalary)}</td>
+                        <td class="text-success">+${formatCurrency(s.bonus || 0)}</td>
+                        <td class="text-danger">-${formatCurrency(s.penalty || 0)}</td>
+                        <td><strong>${formatCurrency(s.total || 0)}</strong></td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadSalary);
+    </script>
+</body>
+</html>

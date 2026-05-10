@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rollar - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Rollar</h1>
+                    <p>Yeni rol yaradın, icazələri seçin, işçi təyinində istifadə olunacaq slug saxlanılır</p>
+                </div>
+                <div class="topbar-right">
+                    <a href="workers.html" class="btn btn-secondary"><i class="bi bi-people"></i> İşçilər</a>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+            <div class="page-content">
+                <div class="card" style="margin-bottom:20px;">
+                    <div class="card-header">
+                        <h3><i class="bi bi-plus-circle"></i> Yeni rol</h3>
+                    </div>
+                    <div class="card-body">
+                        <form id="createRoleForm" class="filter-form" style="align-items:flex-end;">
+                            <div class="form-group">
+                                <label>Slug (unikal, məs: yardimci_fehle)</label>
+                                <input type="text" name="slug" class="form-control" pattern="[a-z0-9_-]{2,40}" required placeholder="məsələn: anbardar">
+                            </div>
+                            <div class="form-group">
+                                <label>Ad (ekranda)</label>
+                                <input type="text" name="label" class="form-control" maxlength="80" required placeholder="Anbardar">
+                            </div>
+                            <div class="form-group">
+                                <label>Giriş paneli</label>
+                                <select name="landing" class="form-control" required>
+                                    <option value="worker">İşçi paneli</option>
+                                    <option value="seller">Satış/Kassa paneli</option>
+                                    <option value="admin">Admin paneli (ən yüksək)</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary"><i class="bi bi-check-lg"></i> Yarad</button>
+                        </form>
+                        <details style="margin-top:16px;">
+                            <summary>İcazələr <small>(boş buraxılsa sonra düzəldə bilərsiniz)</small></summary>
+                            <div id="permChecks" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:8px;margin-top:12px;"></div>
+                        </details>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-diagram-3"></i> Rol siyahısı</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Slug</th>
+                                        <th>Ad</th>
+                                        <th>Panel</th>
+                                        <th>Növ</th>
+                                        <th>Status</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody id="rolesBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const cu = checkAuth();
+        if (cu && cu.role !== 'admin') window.location.href = 'worker-dashboard.html';
+
+        async function loadPermissionsUi() {
+            const wrap = document.getElementById('permChecks');
+            const res = await rolesAPI.permissionKeys();
+            if (!res.success || !Array.isArray(res.permissions)) return;
+            wrap.innerHTML = res.permissions
+              .map(
+                (p) =>
+                  `<label style="display:flex;gap:8px;align-items:center;font-size:0.9rem;"><input type="checkbox" name="perm" value="${p}"> ${p}</label>`
+              )
+              .join('');
+        }
+
+        function selectedPermissions() {
+            return Array.from(document.querySelectorAll('#permChecks input[name="perm"]:checked')).map((x) => x.value);
+        }
+
+        async function loadRolesTable() {
+            const res = await rolesAPI.list();
+            const tbody = document.getElementById('rolesBody');
+            if (!res.success || !Array.isArray(res.roles)) {
+                tbody.innerHTML = '<tr><td colspan="6">Yüklənmədi</td></tr>';
+                return;
+            }
+            tbody.innerHTML = res.roles
+              .map((r) => {
+                const desk =
+                  r.landing === 'admin' ? 'Admin' : r.landing === 'seller' ? 'Satış/Kassa' : 'İşçi';
+                const type = r.isBuiltIn ? '<span class="badge badge-info">Daxili</span>' : '<span class="badge badge-secondary">Fərdi</span>';
+                const st = r.active ? '<span class="badge badge-success">Aktiv</span>' : '<span class="badge badge-warning">Deaktiv</span>';
+                const del =
+                  r.isBuiltIn
+                    ? ''
+                    : `<button type="button" class="btn-action btn-delete" data-del="${r.slug}" title="Sil"><i class="bi bi-trash"></i></button>`;
+                return `<tr>
+                  <td><code>${r.slug}</code></td>
+                  <td>${r.label}</td>
+                  <td>${desk}</td>
+                  <td>${type}</td>
+                  <td>${st}</td>
+                  <td>${del}</td>
+                </tr>`;
+              })
+              .join('');
+
+            tbody.querySelectorAll('[data-del]').forEach((btn) => {
+              btn.addEventListener('click', async () => {
+                const slug = btn.getAttribute('data-del');
+                if (!confirm(`"${slug}" rolunu silmək?`)) return;
+                const d = await rolesAPI.remove(slug);
+                if (!d.success) {
+                  alert(d.message || 'Silinmədi');
+                  return;
+                }
+                await loadRolesTable();
+              });
+            });
+        }
+
+        document.getElementById('createRoleForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fd = new FormData(e.target);
+            const payload = {
+                slug: fd.get('slug').trim().toLowerCase(),
+                label: fd.get('label').trim(),
+                landing: fd.get('landing'),
+                permissions: selectedPermissions()
+            };
+            const res = await rolesAPI.create(payload);
+            if (!res.success) {
+                const msg = res.errors && res.errors[0] ? res.errors[0].msg : (res.message || 'Xəta');
+                alert(msg);
+                return;
+            }
+            e.target.reset();
+            document.querySelectorAll('#permChecks input[type="checkbox"]').forEach((c) => (c.checked = false));
+            await loadRolesTable();
+            alert('Rol yaradıldı — indi İşçilər səhifəsində bu slug ilə təyin edə bilərsiniz.');
+        });
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            await loadPermissionsUi();
+            await loadRolesTable();
+        });
+    </script>
+</body>
+</html>

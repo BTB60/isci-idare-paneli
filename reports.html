@@ -1,0 +1,505 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hesabatlar - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <button class="btn-icon sidebar-toggle" id="sidebarToggle">
+                        <i class="bi bi-list"></i>
+                    </button>
+                    <h1>Hesabatlar</h1>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Report Types -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-funnel"></i> Hesabat Növü</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>Hesabat Növü</label>
+                                <select class="form-control" id="reportType" onchange="changeReportType()">
+                                    <option value="attendance">Davamiyyət Hesabatı</option>
+                                    <option value="salary">Maaş Hesabatı</option>
+                                    <option value="performance">Performans Hesabatı</option>
+                                    <option value="penalty">Cərimə Hesabatı</option>
+                                    <option value="summary">Ümumi Hesabat</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Ay</label>
+                                <select class="form-control" id="reportMonth">
+                                    <option value="1">Yanvar</option>
+                                    <option value="2">Fevral</option>
+                                    <option value="3" selected>Mart</option>
+                                    <option value="4">Aprel</option>
+                                    <option value="5">May</option>
+                                    <option value="6">İyun</option>
+                                    <option value="7">İyul</option>
+                                    <option value="8">Avqust</option>
+                                    <option value="9">Sentyabr</option>
+                                    <option value="10">Oktyabr</option>
+                                    <option value="11">Noyabr</option>
+                                    <option value="12">Dekabr</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>İl</label>
+                                <select class="form-control" id="reportYear">
+                                    <option value="2024">2024</option>
+                                    <option value="2025" selected>2025</option>
+                                    <option value="2026">2026</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>&nbsp;</label>
+                                <button class="btn btn-primary" onclick="generateReport()">
+                                    <i class="bi bi-search"></i> Göstər
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Summary Cards -->
+                <div class="stats-grid" id="reportStats">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-people"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi İşçi</h3>
+                            <p class="stat-value" id="totalWorkers">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>İştirak Faizi</h3>
+                            <p class="stat-value" id="attendanceRate">0%</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-cash-stack"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Maaş</h3>
+                            <p class="stat-value" id="totalSalaries">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Cərimə</h3>
+                            <p class="stat-value" id="totalPenalties">0 ₼</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Report Content -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 id="reportTitle"><i class="bi bi-file-earmark-text"></i> Davamiyyət Hesabatı</h3>
+                        <div class="card-actions">
+                            <button class="btn btn-secondary" onclick="exportReport()">
+                                <i class="bi bi-download"></i> Excel
+                            </button>
+                            <button class="btn btn-secondary" onclick="printReport()">
+                                <i class="bi bi-printer"></i> Çap et
+                            </button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container" id="reportTableContainer">
+                            <table class="data-table" id="reportTable">
+                                <thead>
+                                    <tr>
+                                        <th>İşçi</th>
+                                        <th>Vəzifə</th>
+                                        <th>İş Günü</th>
+                                        <th>İştirak</th>
+                                        <th>Gecikmə</th>
+                                        <th>Qayıb</th>
+                                        <th>Faiz</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="reportTableBody">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Charts Section -->
+                <div class="dashboard-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-pie-chart"></i> Aylıq Statistika</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="monthlyStats">
+                                <div class="stat-bar">
+                                    <div class="stat-bar-label">İştirak</div>
+                                    <div class="stat-bar-progress">
+                                        <div class="progress-bar bg-success" id="presentBar" style="width: 0%"></div>
+                                    </div>
+                                    <div class="stat-bar-value" id="presentPercent">0%</div>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-label">Gecikmə</div>
+                                    <div class="stat-bar-progress">
+                                        <div class="progress-bar bg-warning" id="lateBar" style="width: 0%"></div>
+                                    </div>
+                                    <div class="stat-bar-value" id="latePercent">0%</div>
+                                </div>
+                                <div class="stat-bar">
+                                    <div class="stat-bar-label">Qayıb</div>
+                                    <div class="stat-bar-progress">
+                                        <div class="progress-bar bg-danger" id="absentBar" style="width: 0%"></div>
+                                    </div>
+                                    <div class="stat-bar-value" id="absentPercent">0%</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-trophy"></i> Ən Yaxşı İşçilər</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="topWorkers">
+                                <div class="empty-state">
+                                    <i class="bi bi-people"></i>
+                                    <p>Məlumat yoxdur</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') {
+            window.location.href = 'worker-dashboard.html';
+        }
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+        }
+
+        // Report configurations
+        const reportConfigs = {
+            attendance: {
+                title: 'Davamiyyət Hesabatı',
+                columns: ['İşçi', 'Vəzifə', 'İş Günü', 'İştirak', 'Gecikmə', 'Qayıb', 'Faiz'],
+                fields: ['name', 'position', 'workDays', 'present', 'late', 'absent', 'rate']
+            },
+            salary: {
+                title: 'Maaş Hesabatı',
+                columns: ['İşçi', 'Vəzifə', 'Günlük Maaş', 'İş Günü', 'Bonus', 'Cərimə', 'Yekun'],
+                fields: ['name', 'position', 'dailySalary', 'workDays', 'bonus', 'penalty', 'total']
+            },
+            performance: {
+                title: 'Performans Hesabatı',
+                columns: ['İşçi', 'Vəzifə', 'Ortalama Səmərə', 'Tapşırıqlar', 'Tamamlanan', 'Reytinq'],
+                fields: ['name', 'position', 'efficiency', 'totalTasks', 'completed', 'rank']
+            },
+            penalty: {
+                title: 'Cərimə Hesabatı',
+                columns: ['İşçi', 'Vəzifə', 'Cərimə Sayı', 'Ümumi Məbləğ', 'Son Cərimə', 'Səbəb'],
+                fields: ['name', 'position', 'count', 'total', 'lastDate', 'lastReason']
+            },
+            summary: {
+                title: 'Ümumi Hesabat',
+                columns: ['İşçi', 'Vəzifə', 'İştirak', 'Maaş', 'Bonus', 'Cərimə', 'Yekun'],
+                fields: ['name', 'position', 'attendance', 'salary', 'bonus', 'penalty', 'net']
+            }
+        };
+
+        // Change report type
+        function changeReportType() {
+            const type = document.getElementById('reportType').value;
+            const config = reportConfigs[type];
+            document.getElementById('reportTitle').innerHTML = `<i class="bi bi-file-earmark-text"></i> ${config.title}`;
+            
+            // Update table headers
+            const thead = document.querySelector('#reportTable thead tr');
+            thead.innerHTML = config.columns.map(col => `<th>${col}</th>`).join('');
+            
+            generateReport();
+        }
+
+        // Generate report
+        function generateReport() {
+            const type = document.getElementById('reportType').value;
+            const month = parseInt(document.getElementById('reportMonth').value);
+            const year = parseInt(document.getElementById('reportYear').value);
+            
+            const workers = getWorkers();
+            const performance = getPerformance();
+            const salaries = getSalaries();
+            const penalties = getPenalties();
+            const tasks = getTasks();
+            
+            let reportData = [];
+            let totalWorkDays = 0;
+            let totalPresent = 0;
+            let totalSalary = 0;
+            let totalPenalty = 0;
+            
+            workers.forEach(worker => {
+                const workerPerformance = performance.filter(p => {
+                    const pDate = new Date(p.date);
+                    return p.workerId === worker.id && pDate.getMonth() + 1 === month && pDate.getFullYear() === year;
+                });
+                
+                const workerSalaries = salaries.filter(s => s.workerId === worker.id && s.month === month && s.year === year);
+                const workerPenalties = penalties.filter(p => {
+                    const pDate = new Date(p.date);
+                    return p.workerId === worker.id && pDate.getMonth() + 1 === month && pDate.getFullYear() === year;
+                });
+                const workerTasks = tasks.filter(t => t.assignedTo === worker.id);
+                
+                const present = workerPerformance.filter(p => p.status === 'present').length;
+                const late = workerPerformance.filter(p => p.status === 'late').length;
+                const absent = workerPerformance.filter(p => p.status === 'absent').length;
+                const workDays = present + late;
+                const rate = workerPerformance.length > 0 ? (present / workerPerformance.length * 100).toFixed(1) : 0;
+                
+                const salary = workerSalaries[0] || { workDays: workDays, dailySalary: worker.dailySalary || 50, bonus: 0, penalty: 0, total: (worker.dailySalary || 50) * workDays };
+                const totalPenaltyAmount = workerPenalties.reduce((sum, p) => sum + p.amount, 0);
+                
+                totalWorkDays += workDays;
+                totalPresent += present;
+                totalSalary += salary.total;
+                totalPenalty += totalPenaltyAmount;
+                
+                let row = {};
+                switch(type) {
+                    case 'attendance':
+                        row = {
+                            name: worker.name,
+                            position: worker.position,
+                            workDays: workDays,
+                            present: present,
+                            late: late,
+                            absent: absent,
+                            rate: rate + '%'
+                        };
+                        break;
+                    case 'salary':
+                        row = {
+                            name: worker.name,
+                            position: worker.position,
+                            dailySalary: formatCurrency(worker.dailySalary || 50),
+                            workDays: workDays,
+                            bonus: formatCurrency(salary.bonus || 0),
+                            penalty: formatCurrency(salary.penalty || 0),
+                            total: formatCurrency(salary.total || 0)
+                        };
+                        break;
+                    case 'performance':
+                        const avgEfficiency = workerPerformance.length > 0 
+                            ? (workerPerformance.reduce((sum, p) => sum + (p.efficiency || 0), 0) / workerPerformance.length).toFixed(1)
+                            : 0;
+                        const completed = workerTasks.filter(t => t.status === 'completed').length;
+                        row = {
+                            name: worker.name,
+                            position: worker.position,
+                            efficiency: avgEfficiency + '%',
+                            totalTasks: workerTasks.length,
+                            completed: completed,
+                            rank: avgEfficiency > 90 ? 'A' : avgEfficiency > 75 ? 'B' : avgEfficiency > 60 ? 'C' : 'D'
+                        };
+                        break;
+                    case 'penalty':
+                        const lastPenalty = workerPenalties[workerPenalties.length - 1];
+                        row = {
+                            name: worker.name,
+                            position: worker.position,
+                            count: workerPenalties.length,
+                            total: formatCurrency(totalPenaltyAmount),
+                            lastDate: lastPenalty ? formatDate(lastPenalty.date) : '-',
+                            lastReason: lastPenalty ? lastPenalty.reason : '-'
+                        };
+                        break;
+                    case 'summary':
+                        row = {
+                            name: worker.name,
+                            position: worker.position,
+                            attendance: rate + '%',
+                            salary: formatCurrency((worker.dailySalary || 50) * workDays),
+                            bonus: formatCurrency(salary.bonus || 0),
+                            penalty: formatCurrency(totalPenaltyAmount),
+                            net: formatCurrency((worker.dailySalary || 50) * workDays + (salary.bonus || 0) - totalPenaltyAmount)
+                        };
+                        break;
+                }
+                reportData.push(row);
+            });
+            
+            // Update stats
+            document.getElementById('totalWorkers').textContent = workers.length;
+            document.getElementById('attendanceRate').textContent = totalWorkDays > 0 ? (totalPresent / totalWorkDays * 100).toFixed(1) + '%' : '0%';
+            document.getElementById('totalSalaries').textContent = formatCurrency(totalSalary);
+            document.getElementById('totalPenalties').textContent = formatCurrency(totalPenalty);
+            
+            // Update table
+            const tbody = document.getElementById('reportTableBody');
+            if (reportData.length === 0) {
+                tbody.innerHTML = `<tr><td colspan="7" class="text-center">Məlumat yoxdur</td></tr>`;
+            } else {
+                tbody.innerHTML = reportData.map(row => `
+                    <tr>
+                        ${Object.values(row).map(val => `<td>${val}</td>`).join('')}
+                    </tr>
+                `).join('');
+            }
+            
+            // Update charts
+            updateCharts(totalPresent, totalWorkDays);
+            
+            // Update top workers
+            updateTopWorkers(workers, performance, month, year);
+        }
+
+        // Update charts
+        function updateCharts(totalPresent, totalWorkDays) {
+            const presentPercent = totalWorkDays > 0 ? (totalPresent / totalWorkDays * 100) : 0;
+            const latePercent = totalWorkDays > 0 ? ((totalWorkDays - totalPresent) / totalWorkDays * 50) : 0;
+            const absentPercent = totalWorkDays > 0 ? ((totalWorkDays - totalPresent) / totalWorkDays * 50) : 0;
+            
+            document.getElementById('presentBar').style.width = presentPercent + '%';
+            document.getElementById('presentPercent').textContent = presentPercent.toFixed(1) + '%';
+            document.getElementById('lateBar').style.width = latePercent + '%';
+            document.getElementById('latePercent').textContent = latePercent.toFixed(1) + '%';
+            document.getElementById('absentBar').style.width = absentPercent + '%';
+            document.getElementById('absentPercent').textContent = absentPercent.toFixed(1) + '%';
+        }
+
+        // Update top workers
+        function updateTopWorkers(workers, performance, month, year) {
+            const workerStats = workers.map(worker => {
+                const workerPerformance = performance.filter(p => {
+                    const pDate = new Date(p.date);
+                    return p.workerId === worker.id && pDate.getMonth() + 1 === month && pDate.getFullYear() === year;
+                });
+                const avgEfficiency = workerPerformance.length > 0 
+                    ? workerPerformance.reduce((sum, p) => sum + (p.efficiency || 0), 0) / workerPerformance.length
+                    : 0;
+                return { ...worker, avgEfficiency };
+            });
+            
+            workerStats.sort((a, b) => b.avgEfficiency - a.avgEfficiency);
+            const top3 = workerStats.slice(0, 3);
+            
+            const container = document.getElementById('topWorkers');
+            if (top3.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-people"></i>
+                        <p>Məlumat yoxdur</p>
+                    </div>
+                `;
+            } else {
+                container.innerHTML = `
+                    <div class="top-workers-list">
+                        ${top3.map((worker, index) => `
+                            <div class="top-worker-item">
+                                <div class="top-worker-rank">${index + 1}</div>
+                                <div class="top-worker-info">
+                                    <strong>${worker.name}</strong>
+                                    <small>${worker.position}</small>
+                                </div>
+                                <div class="top-worker-score">${worker.avgEfficiency.toFixed(1)}%</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            }
+        }
+
+        // Export report
+        function exportReport() {
+            const type = document.getElementById('reportType').value;
+            const month = document.getElementById('reportMonth').options[document.getElementById('reportMonth').selectedIndex].text;
+            const year = document.getElementById('reportYear').value;
+            
+            const table = document.getElementById('reportTable');
+            let csv = '\uFEFF'; // BOM for Excel
+            
+            // Headers
+            const headers = Array.from(table.querySelectorAll('thead th')).map(th => th.textContent);
+            csv += headers.join(';') + '\n';
+            
+            // Data
+            const rows = table.querySelectorAll('tbody tr');
+            rows.forEach(row => {
+                const cells = Array.from(row.querySelectorAll('td')).map(td => td.textContent);
+                csv += cells.join(';') + '\n';
+            });
+            
+            // Download
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `555-Insaat-${type}-${month}-${year}.csv`;
+            link.click();
+        }
+
+        // Print report
+        function printReport() {
+            window.print();
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            // Set current month/year
+            const now = new Date();
+            document.getElementById('reportMonth').value = now.getMonth() + 1;
+            document.getElementById('reportYear').value = now.getFullYear();
+            
+            generateReport();
+        });
+    </script>
+</body>
+</html>

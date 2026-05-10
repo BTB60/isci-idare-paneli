@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>555 İnşaat - İşçi İdarəetmə Sistemi</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Landing Page -->
+    <div class="landing-page">
+        <nav class="landing-nav" aria-label="Əsas naviqasiya">
+            <div class="logo">
+                <i class="bi bi-building"></i>
+                <span>555 İnşaat</span>
+            </div>
+            <button type="button" class="landing-nav-toggle" id="landingNavToggle" aria-expanded="false" aria-controls="landingNavMenu" aria-label="Menyunu aç və ya bağla">
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </button>
+            <div class="nav-links" id="landingNavMenu">
+                <a href="#features">Xüsusiyyətlər</a>
+                <a href="#about">Haqqımızda</a>
+                <a href="login.html" class="btn btn-primary">Daxil ol</a>
+            </div>
+        </nav>
+        <div id="landingNavBackdrop" class="landing-nav-backdrop" aria-hidden="true"></div>
+
+        <header class="hero">
+            <div class="hero-content">
+                <h1>İşçi Performans və İdarəetmə Sistemi</h1>
+                <p>555 İnşaat şirkətinin işçi idarəetmə, performans izləmə və maaş hesablaması üçün professional həll</p>
+                <div class="hero-buttons">
+                    <a href="login.html" class="btn btn-primary btn-lg">
+                        <i class="bi bi-box-arrow-in-right"></i>
+                        Sistemə daxil ol
+                    </a>
+                </div>
+            </div>
+            <div class="hero-image">
+                <i class="bi bi-building"></i>
+            </div>
+        </header>
+
+        <section id="features" class="features">
+            <h2>Sistem Xüsusiyyətləri</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <i class="bi bi-people"></i>
+                    <h3>İşçi İdarəetmə</h3>
+                    <p>İşçi əlavə etmə, redaktə etmə və performans izləmə</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-graph-up"></i>
+                    <h3>Performans İzləmə</h3>
+                    <p>Günlük, həftəlik və aylıq performans hesabatları</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-cash-stack"></i>
+                    <h3>Maaş Hesablaması</h3>
+                    <p>Avtomatik maaş, bonus və cərimə hesablaması</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-calendar-check"></i>
+                    <h3>İcazə Sistemi</h3>
+                    <p>Onlayn icazə sorğuları və təsdiqləmə</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <h3>Növbə Dəyişmə</h3>
+                    <p>İşçilər arasında növbə dəyişmə sorğuları</p>
+                </div>
+                <div class="feature-card">
+                    <i class="bi bi-list-task"></i>
+                    <h3>Tapşırıqlar</h3>
+                    <p>Tapşırıq təyin etmə və izləmə</p>
+                </div>
+            </div>
+        </section>
+
+        <footer id="about" class="landing-footer">
+            <p>&copy; 2024 555 İnşaat. Bütün hüquqlar qorunur.</p>
+        </footer>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>

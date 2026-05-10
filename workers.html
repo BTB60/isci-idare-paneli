@@ -1,0 +1,575 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İşçilər - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>İşçilər</h1>
+                    <p>İşçi idarəetmə və siyahısı</p>
+                </div>
+                <div class="topbar-right">
+                    <div class="search-box">
+                        <i class="bi bi-search"></i>
+                        <input type="text" id="searchInput" placeholder="İşçi axtar...">
+                    </div>
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Filter Section -->
+                <div class="filter-section">
+                    <div class="filter-form">
+                        <div class="form-group">
+                            <label>Vəzifə</label>
+                            <select id="positionFilter" class="form-control">
+                                <option value="">Hamısı</option>
+                                <option value="Baş Usta">Baş Usta</option>
+                                <option value="Usta">Usta</option>
+                                <option value="Köməkçi">Köməkçi</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rol</label>
+                            <select id="roleFilter" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="statusFilter" class="form-control">
+                                <option value="">Hamısı</option>
+                                <option value="active">Aktiv</option>
+                                <option value="inactive">Deaktiv</option>
+                            </select>
+                        </div>
+                        <a href="roles.html" class="btn btn-outline-secondary btn-lg" style="min-width: auto;">
+                            <i class="bi bi-person-badge"></i> Rol idarəetməsi
+                        </a>
+                        <button class="btn btn-primary btn-lg" onclick="openModal('addWorkerModal')" style="min-width: 160px;">
+                            <i class="bi bi-plus-lg"></i>
+                            Yeni İşçi Əlavə Et
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Workers Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-people"></i> İşçi Siyahısı</h3>
+                        <span id="workerCount">0 işçi</span>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table" id="workersTable">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Ad Soyad</th>
+                                        <th>Email</th>
+                                        <th>Vəzifə</th>
+                                        <th>Rol</th>
+                                        <th>Günlük Maaş</th>
+                                        <th>Status</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="workersTableBody">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Worker Modal -->
+    <div class="modal" id="addWorkerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Yeni İşçi Əlavə Et</h3>
+                <button class="modal-close" onclick="closeModal('addWorkerModal')">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addWorkerForm">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ad Soyad *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>İstifadəçi adı *</label>
+                            <input type="text" name="username" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Şifrə *</label>
+                            <input type="password" name="password" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Vəzifə *</label>
+                            <select name="position" class="form-control" required>
+                                <option value="">Seçin</option>
+                                <option value="Baş Usta">Baş Usta</option>
+                                <option value="Usta">Usta</option>
+                                <option value="Köməkçi">Köməkçi</option>
+                                <option value="Satıcı">Satıcı</option>
+                                <option value="Kassir">Kassir</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rol *</label>
+                            <select name="role" class="form-control" required></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Aylıq Maaş (₼)</label>
+                            <input type="number" name="monthlySalary" class="form-control" min="0" step="0.01" placeholder="0.00" oninput="calculateDailyFromMonthly(this)">
+                            <small class="form-text">Daxil edilsə, günlük avtomatik hesablanır</small>
+                        </div>
+                        <div class="form-group">
+                            <label>Günlük Maaş (₼)</label>
+                            <input type="number" name="dailySalary" class="form-control" min="0" step="0.01" placeholder="0.00" oninput="calculateMonthlyFromDaily(this)">
+                            <small class="form-text">Daxil edilsə, aylıq avtomatik hesablanır</small>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>İş Günleri / Ay</label>
+                        <input type="number" name="workDaysPerMonth" class="form-control" value="30" min="1" max="31" readonly>
+                        <small class="form-text">Standart: 30 gün (avtomatik hesablama üçün)</small>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addWorkerModal')">Ləğv et</button>
+                <button type="button" class="btn btn-primary" onclick="addWorker()">
+                    <i class="bi bi-check-lg"></i>
+                    Yadda saxla
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Worker Modal -->
+    <div class="modal" id="editWorkerModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>İşçi Redaktə Et</h3>
+                <button class="modal-close" onclick="closeModal('editWorkerModal')">
+                    <i class="bi bi-x-lg"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="editWorkerForm">
+                    <input type="hidden" name="id">
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Ad Soyad *</label>
+                            <input type="text" name="name" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email *</label>
+                            <input type="email" name="email" class="form-control" required>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Vəzifə *</label>
+                            <select name="position" class="form-control" required>
+                                <option value="Baş Usta">Baş Usta</option>
+                                <option value="Usta">Usta</option>
+                                <option value="Köməkçi">Köməkçi</option>
+                                <option value="Satıcı">Satıcı</option>
+                                <option value="Kassir">Kassir</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Rol *</label>
+                            <select name="role" class="form-control" required></select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Aylıq Maaş (₼)</label>
+                            <input type="number" name="monthlySalary" class="form-control" min="0" step="0.01" placeholder="0.00" oninput="calculateDailyFromMonthlyEdit(this)">
+                        </div>
+                        <div class="form-group">
+                            <label>Günlük Maaş (₼)</label>
+                            <input type="number" name="dailySalary" class="form-control" min="0" step="0.01" placeholder="0.00" oninput="calculateMonthlyFromDailyEdit(this)">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>İş Günleri / Ay</label>
+                            <input type="number" name="workDaysPerMonth" class="form-control" value="30" min="1" max="31" readonly>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select name="status" class="form-control">
+                                <option value="active">Aktiv</option>
+                                <option value="inactive">Deaktiv</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('editWorkerModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="updateWorker()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') {
+            window.location.href = 'worker-dashboard.html';
+        }
+
+        const userNameEl = document.getElementById('userName');
+        if (currentUser && userNameEl) {
+            userNameEl.textContent = currentUser.name;
+        }
+
+        let assignRoleOptions = [];
+
+        async function loadAssignRoleOptions() {
+            const res = await rolesAPI.assignOptions();
+            assignRoleOptions = res.success && Array.isArray(res.roles) ? res.roles : [];
+            const sorted = assignRoleOptions.slice().sort((a, b) => a.label.localeCompare(b.label, 'az'));
+
+            function fillSelect(sel, withAll, allLabel) {
+                const prev = sel.value;
+                sel.innerHTML = '';
+                if (withAll) {
+                    const o = document.createElement('option');
+                    o.value = '';
+                    o.textContent = allLabel;
+                    sel.appendChild(o);
+                }
+                sorted.forEach((r) => {
+                    const o = document.createElement('option');
+                    o.value = r.slug;
+                    o.textContent = `${r.label} (${r.slug})`;
+                    sel.appendChild(o);
+                });
+                if ([...sel.options].some((opt) => opt.value === prev)) sel.value = prev;
+            }
+
+            fillSelect(document.getElementById('roleFilter'), true, 'Hamısı');
+            fillSelect(document.querySelector('#addWorkerForm select[name="role"]'), true, 'Seçin');
+            fillSelect(document.querySelector('#editWorkerForm select[name="role"]'), false, '');
+        }
+
+        function roleBadgeHtml(worker) {
+            const r = assignRoleOptions.find((x) => x.slug === worker.role);
+            const label = r ? r.label : worker.role || '—';
+            return `<span class="badge badge-secondary" title="${worker.role || ''}">${label}</span>`;
+        }
+
+        function rowActions(workerId) {
+            const safe = JSON.stringify(String(workerId));
+            return `
+                        <div class="action-btns">
+                            <button type="button" class="btn-action btn-edit" onclick='editWorker(${safe})' title="Redaktə">
+                                <i class="bi bi-pencil"></i>
+                            </button>
+                            <button type="button" class="btn-action btn-delete" onclick='deleteWorker(${safe})' title="Sil">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </div>`;
+        }
+
+        // Load workers
+        function loadWorkers() {
+            const workers = getWorkers();
+            const tbody = document.getElementById('workersTableBody');
+            const countSpan = document.getElementById('workerCount');
+            
+            countSpan.textContent = `${workers.length} işçi`;
+            
+            if (workers.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>İşçi yoxdur</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = workers.map(worker => {
+                return `
+                <tr>
+                    <td>${worker.id}</td>
+                    <td><strong>${worker.name}</strong></td>
+                    <td>${worker.email}</td>
+                    <td>${worker.position}</td>
+                    <td>${roleBadgeHtml(worker)}</td>
+                    <td>${formatCurrency(worker.dailySalary)}</td>
+                    <td>
+                        <span class="badge ${worker.status === 'active' ? 'badge-success' : 'badge-danger'}">
+                            ${worker.status === 'active' ? 'Aktiv' : 'Deaktiv'}
+                        </span>
+                    </td>
+                    <td>${rowActions(worker.id)}</td>
+                </tr>
+            `}).join('');
+        }
+
+        async function addWorker() {
+            const form = document.getElementById('addWorkerForm');
+            const formData = new FormData(form);
+
+            const dailySalary = parseFloat(formData.get('dailySalary')) || 0;
+            const monthlySalary = parseFloat(formData.get('monthlySalary')) || 0;
+            const workDaysPerMonth = parseInt(formData.get('workDaysPerMonth'), 10) || 30;
+
+            const payload = {
+                name: formData.get('name'),
+                username: formData.get('username'),
+                email: formData.get('email'),
+                password: formData.get('password'),
+                position: formData.get('position'),
+                dailySalary,
+                monthlySalary,
+                workDaysPerMonth,
+                role: formData.get('role') || 'worker'
+            };
+
+            const result = await apiFetch('/workers', 'POST', payload);
+            if (!result.success) {
+                const msg = result.errors && result.errors[0] ? result.errors[0].msg : (result.message || 'Xəta');
+                showAlert(msg, 'danger');
+                return;
+            }
+
+            await refreshWorkersCache();
+            closeModal('addWorkerModal');
+            form.reset();
+            loadWorkers();
+            showAlert('İşçi uğurla əlavə edildi', 'success');
+        }
+
+        // Edit worker
+        function editWorker(id) {
+            const worker = getWorkerById(id);
+            if (!worker) return;
+
+            const form = document.getElementById('editWorkerForm');
+            form.elements['id'].value = worker.id;
+            form.elements['name'].value = worker.name;
+            form.elements['email'].value = worker.email;
+            form.elements['position'].value = worker.position;
+            form.elements['role'].value = worker.role || 'worker';
+            form.elements['dailySalary'].value = worker.dailySalary || '';
+            form.elements['monthlySalary'].value = worker.monthlySalary || '';
+            form.elements['workDaysPerMonth'].value = worker.workDaysPerMonth || 30;
+            form.elements['status'].value = worker.status || 'active';
+
+            openModal('editWorkerModal');
+        }
+
+        // Update worker
+        async function updateWorker() {
+            const form = document.getElementById('editWorkerForm');
+            const formData = new FormData(form);
+            const id = String(formData.get('id') || '').trim();
+
+            const dailySalary = parseFloat(formData.get('dailySalary')) || 0;
+            const monthlySalary = parseFloat(formData.get('monthlySalary')) || 0;
+            const workDaysPerMonth = parseInt(formData.get('workDaysPerMonth'), 10) || 30;
+
+            const payload = {
+                name: formData.get('name'),
+                email: formData.get('email'),
+                position: formData.get('position'),
+                role: formData.get('role') || 'worker',
+                dailySalary,
+                monthlySalary,
+                workDaysPerMonth,
+                status: formData.get('status')
+            };
+
+            const result = await apiFetch(`/workers/${id}`, 'PUT', payload);
+            if (!result.success) {
+                showAlert(result.message || 'Yenilənmədi', 'danger');
+                return;
+            }
+
+            await refreshWorkersCache();
+            closeModal('editWorkerModal');
+            loadWorkers();
+            showAlert('İşçi məlumatları yeniləndi', 'success');
+        }
+
+        function deleteWorker(id) {
+            confirmAction('Bu işçini silmək istədiyinizə əminsiniz?', async () => {
+                const sid = String(id);
+                const result = await apiFetch(`/workers/${sid}`, 'DELETE');
+                if (!result.success) {
+                    showAlert(result.message || 'Silinmədi', 'danger');
+                    return;
+                }
+                await refreshWorkersCache();
+                loadWorkers();
+                showAlert('İşçi silindi', 'success');
+            });
+        }
+
+        // Search functionality
+        document.getElementById('searchInput')?.addEventListener('input', function(e) {
+            const query = e.target.value.toLowerCase();
+            const rows = document.querySelectorAll('#workersTableBody tr');
+            
+            rows.forEach(row => {
+                const text = row.textContent.toLowerCase();
+                row.style.display = text.includes(query) ? '' : 'none';
+            });
+        });
+
+        // Filter functionality
+        document.getElementById('positionFilter')?.addEventListener('change', filterWorkers);
+        document.getElementById('roleFilter')?.addEventListener('change', filterWorkers);
+        document.getElementById('statusFilter')?.addEventListener('change', filterWorkers);
+
+        function filterWorkers() {
+            const position = document.getElementById('positionFilter').value;
+            const role = document.getElementById('roleFilter').value;
+            const status = document.getElementById('statusFilter').value;
+            
+            const workers = getWorkers();
+            const filtered = workers.filter(w => {
+                return (!position || w.position === position) &&
+                       (!role || w.role === role) &&
+                       (!status || w.status === status);
+            });
+            
+            // Reload table with filtered data
+            const tbody = document.getElementById('workersTableBody');
+            document.getElementById('workerCount').textContent = `${filtered.length} işçi`;
+            
+            if (filtered.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="empty-state">
+                            <i class="bi bi-inbox"></i>
+                            <p>Uyğun işçi tapılmadı</p>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(worker => {
+                return `
+                <tr>
+                    <td>${worker.id}</td>
+                    <td><strong>${worker.name}</strong></td>
+                    <td>${worker.email}</td>
+                    <td>${worker.position}</td>
+                    <td>${roleBadgeHtml(worker)}</td>
+                    <td>${formatCurrency(worker.dailySalary)}</td>
+                    <td>
+                        <span class="badge ${worker.status === 'active' ? 'badge-success' : 'badge-danger'}">
+                            ${worker.status === 'active' ? 'Aktiv' : 'Deaktiv'}
+                        </span>
+                    </td>
+                    <td>${rowActions(worker.id)}</td>
+                </tr>
+            `}).join('');
+        }
+
+        // Salary calculation functions for Add Modal
+        function calculateDailyFromMonthly(input) {
+            const form = input.closest('form');
+            const monthly = parseFloat(input.value) || 0;
+            const workDays = parseInt(form.querySelector('[name="workDaysPerMonth"]').value) || 30;
+            const dailyInput = form.querySelector('[name="dailySalary"]');
+            
+            if (monthly > 0 && workDays > 0) {
+                dailyInput.value = (monthly / workDays).toFixed(2);
+            }
+        }
+
+        function calculateMonthlyFromDaily(input) {
+            const form = input.closest('form');
+            const daily = parseFloat(input.value) || 0;
+            const workDays = parseInt(form.querySelector('[name="workDaysPerMonth"]').value) || 30;
+            const monthlyInput = form.querySelector('[name="monthlySalary"]');
+            
+            if (daily > 0 && workDays > 0) {
+                monthlyInput.value = (daily * workDays).toFixed(2);
+            }
+        }
+
+        // Salary calculation functions for Edit Modal
+        function calculateDailyFromMonthlyEdit(input) {
+            const form = input.closest('form');
+            const monthly = parseFloat(input.value) || 0;
+            const workDays = parseInt(form.querySelector('[name="workDaysPerMonth"]').value) || 30;
+            const dailyInput = form.querySelector('[name="dailySalary"]');
+            
+            if (monthly > 0 && workDays > 0) {
+                dailyInput.value = (monthly / workDays).toFixed(2);
+            }
+        }
+
+        function calculateMonthlyFromDailyEdit(input) {
+            const form = input.closest('form');
+            const daily = parseFloat(input.value) || 0;
+            const workDays = parseInt(form.querySelector('[name="workDaysPerMonth"]').value) || 30;
+            const monthlyInput = form.querySelector('[name="monthlySalary"]');
+            
+            if (daily > 0 && workDays > 0) {
+                monthlyInput.value = (daily * workDays).toFixed(2);
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', async () => {
+            try {
+                await loadAssignRoleOptions();
+                await refreshWorkersCache();
+            } catch (e) {
+                console.warn(e);
+                showAlert(e.message || 'İşçilər yüklənmədi — backend işləyir?', 'danger');
+            }
+            loadWorkers();
+        });
+    </script>
+</body>
+</html>

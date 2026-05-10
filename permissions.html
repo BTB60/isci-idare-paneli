@@ -1,0 +1,122 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İcazələr - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>İcazələr</h1><p>İcazə sorğuları və təsdiqləmə</p></div>
+                <div class="topbar-right">
+                    <div class="search-box"><i class="bi bi-search"></i><input type="text" placeholder="Axtarış..."></div>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="tabs">
+                    <button class="tab-btn active" data-tab="pending">Gözləyən</button>
+                    <button class="tab-btn" data-tab="approved">Təsdiqlənmiş</button>
+                    <button class="tab-btn" data-tab="rejected">Rədd edilmiş</button>
+                </div>
+
+                <div id="pending" class="tab-content active">
+                    <div class="card">
+                        <div class="card-header"><h3><i class="bi bi-hourglass-split"></i> Gözləyən İcazələr</h3></div>
+                        <div class="card-body"><div id="pendingPermissions"></div></div>
+                    </div>
+                </div>
+
+                <div id="approved" class="tab-content">
+                    <div class="card">
+                        <div class="card-header"><h3><i class="bi bi-check-circle"></i> Təsdiqlənmiş İcazələr</h3></div>
+                        <div class="card-body"><div id="approvedPermissions"></div></div>
+                    </div>
+                </div>
+
+                <div id="rejected" class="tab-content">
+                    <div class="card">
+                        <div class="card-header"><h3><i class="bi bi-x-circle"></i> Rədd edilmiş İcazələr</h3></div>
+                        <div class="card-body"><div id="rejectedPermissions"></div></div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        initTabs();
+
+        function loadPermissions() {
+            const permissions = getPermissions();
+            const workers = getWorkers();
+
+            ['pending', 'approved', 'rejected'].forEach(status => {
+                const container = document.getElementById(status + 'Permissions');
+                const filtered = permissions.filter(p => p.status === status);
+
+                if (filtered.length === 0) {
+                    container.innerHTML = `<div class="empty-state"><i class="bi bi-inbox"></i><p>${status === 'pending' ? 'Gözləyən icazə yoxdur' : status === 'approved' ? 'Təsdiqlənmiş icazə yoxdur' : 'Rədd edilmiş icazə yoxdur'}</p></div>`;
+                    return;
+                }
+
+                container.innerHTML = `<div class="table-container"><table class="data-table"><thead><tr><th>İşçi</th><th>Növ</th><th>Başlama</th><th>Bitmə</th><th>Səbəb</th>${status === 'pending' ? '<th>Əməliyyatlar</th>' : ''}</tr></thead><tbody>${filtered.map(p => {
+                    const worker = workers.find(w => w.id === p.workerId);
+                    return `<tr>
+                        <td><strong>${worker?.name || 'Naməlum'}</strong></td>
+                        <td><span class="badge badge-${p.type === 'paid' ? 'success' : 'info'}">${p.type === 'paid' ? 'Ödənişli' : 'Ödənişsiz'}</span></td>
+                        <td>${formatDate(p.startDate)}</td>
+                        <td>${formatDate(p.endDate)}</td>
+                        <td>${p.reason}</td>
+                        ${status === 'pending' ? `<td><div class="action-btns"><button class="btn-action btn-success" onclick="approvePermission(${p.id})" title="Təsdiqlə" style="background:rgba(40,167,69,0.1);color:var(--success)"><i class="bi bi-check-lg"></i></button><button class="btn-action btn-delete" onclick="rejectPermission(${p.id})" title="Rədd et"><i class="bi bi-x-lg"></i></button></div></td>` : ''}
+                    </tr>`;
+                }).join('')}</tbody></table></div>`;
+            });
+        }
+
+        function approvePermission(id) {
+            let permissions = getPermissions();
+            const idx = permissions.findIndex(p => p.id === id);
+            if (idx !== -1) {
+                permissions[idx].status = 'approved';
+                permissions[idx].approvedBy = currentUser.id;
+                permissions[idx].approvedAt = new Date().toISOString();
+                saveData('permissions', permissions);
+                loadPermissions();
+                showAlert('İcazə təsdiqləndi', 'success');
+            }
+        }
+
+        function rejectPermission(id) {
+            let permissions = getPermissions();
+            const idx = permissions.findIndex(p => p.id === id);
+            if (idx !== -1) {
+                permissions[idx].status = 'rejected';
+                permissions[idx].rejectedBy = currentUser.id;
+                permissions[idx].rejectedAt = new Date().toISOString();
+                saveData('permissions', permissions);
+                loadPermissions();
+                showAlert('İcazə rədd edildi', 'danger');
+            }
+        }
+
+        document.addEventListener('DOMContentLoaded', loadPermissions);
+    </script>
+</body>
+</html>

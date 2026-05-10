@@ -1,0 +1,389 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Məsai - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Məsai</h1><p>Əlavə iş saatlarının idarəetməsi</p></div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openModal('addOvertimeModal')">
+                        <i class="bi bi-plus"></i> Məsai Əlavə Et
+                    </button>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-clock-fill"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Məsai</h3>
+                            <p class="stat-value" id="totalHours">0 saat</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-cash-coin"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Məsai Ödənişi</h3>
+                            <p class="stat-value" id="totalPayment">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Gözləyən</h3>
+                            <p class="stat-value" id="pendingCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Təsdiqlənən</h3>
+                            <p class="stat-value" id="approvedCount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-section">
+                    <div class="filter-form">
+                        <div class="form-group">
+                            <label>Ay</label>
+                            <select id="monthFilter" class="form-control"></select>
+                        </div>
+                        <div class="form-group">
+                            <label>İşçi</label>
+                            <select id="workerFilter" class="form-control">
+                                <option value="">Bütün işçilər</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="statusFilter" class="form-control">
+                                <option value="">Hamısı</option>
+                                <option value="pending">Gözləyən</option>
+                                <option value="approved">Təsdiqlənən</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Overtime Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-clock-fill"></i> Məsai Qeydləri</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tarix</th>
+                                        <th>İşçi</th>
+                                        <th>Saat</th>
+                                        <th>Səbəb</th>
+                                        <th>Ödəniş</th>
+                                        <th>Status</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="overtimeTableBody">
+                                    <tr><td colspan="7" class="text-center">Məlumat yüklənir...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Overtime Modal -->
+    <div class="modal" id="addOvertimeModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-clock-fill"></i> Məsai Əlavə Et</h3>
+                <button class="modal-close" onclick="closeModal('addOvertimeModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addOvertimeForm">
+                    <div class="form-group">
+                        <label>İşçi *</label>
+                        <select name="workerId" class="form-control" required>
+                            <option value="">İşçi seçin</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tarix *</label>
+                            <input type="date" name="date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Saat *</label>
+                            <input type="number" name="hours" class="form-control" min="0.5" max="12" step="0.5" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Səbəb *</label>
+                        <textarea name="reason" class="form-control" rows="2" required placeholder="Məsai səbəbi..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Məsai Dərəcəsi</label>
+                        <select name="rate" class="form-control">
+                            <option value="1.5">1.5x (Standart)</option>
+                            <option value="2">2x (Bayram/İstirahət)</option>
+                            <option value="2.5">2.5x (Gecə növbəsi)</option>
+                        </select>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addOvertimeModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="saveOvertime()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        // Initialize overtime data
+        function initOvertime() {
+            if (!localStorage.getItem('overtime')) {
+                localStorage.setItem('overtime', JSON.stringify([]));
+            }
+        }
+
+        function getOvertime() {
+            return JSON.parse(localStorage.getItem('overtime') || '[]');
+        }
+
+        function saveOvertimeData(data) {
+            localStorage.setItem('overtime', JSON.stringify(data));
+        }
+
+        // Load filters
+        function loadFilters() {
+            const workers = getWorkers();
+            const workerFilter = document.getElementById('workerFilter');
+            const workerSelect = document.querySelector('#addOvertimeForm select[name="workerId"]');
+            
+            const options = workers.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+            workerFilter.innerHTML += options;
+            workerSelect.innerHTML += options;
+
+            // Month filter
+            const months = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
+            const monthFilter = document.getElementById('monthFilter');
+            months.forEach((m, i) => {
+                monthFilter.innerHTML += `<option value="${i+1}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`;
+            });
+        }
+
+        // Calculate overtime payment
+        function calculatePayment(hours, rate, workerId) {
+            const workers = getWorkers();
+            const worker = workers.find(w => w.id === workerId);
+            const hourlyRate = (worker?.dailySalary || 0) / 8; // Assuming 8 hour work day
+            return hours * hourlyRate * rate;
+        }
+
+        // Load stats
+        function loadStats() {
+            const overtime = getOvertime();
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+
+            const thisMonth = overtime.filter(o => {
+                const d = new Date(o.date);
+                return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+            });
+
+            const totalHours = thisMonth.reduce((sum, o) => sum + parseFloat(o.hours), 0);
+            const totalPayment = thisMonth
+                .filter(o => o.status === 'approved')
+                .reduce((sum, o) => sum + (o.payment || 0), 0);
+            const pending = overtime.filter(o => o.status === 'pending').length;
+            const approved = overtime.filter(o => o.status === 'approved').length;
+
+            document.getElementById('totalHours').textContent = totalHours.toFixed(1) + ' saat';
+            document.getElementById('totalPayment').textContent = formatCurrency(totalPayment);
+            document.getElementById('pendingCount').textContent = pending;
+            document.getElementById('approvedCount').textContent = approved;
+        }
+
+        // Load overtime table
+        function loadOvertime() {
+            const overtime = getOvertime();
+            const workers = getWorkers();
+            const monthFilter = document.getElementById('monthFilter').value;
+            const workerFilter = document.getElementById('workerFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+
+            let filtered = overtime;
+
+            if (monthFilter) {
+                filtered = filtered.filter(o => {
+                    const d = new Date(o.date);
+                    return d.getMonth() + 1 === parseInt(monthFilter);
+                });
+            }
+
+            if (workerFilter) {
+                filtered = filtered.filter(o => o.workerId === parseInt(workerFilter));
+            }
+
+            if (statusFilter) {
+                filtered = filtered.filter(o => o.status === statusFilter);
+            }
+
+            const tbody = document.getElementById('overtimeTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Məlumat yoxdur</td></tr>';
+                return;
+            }
+
+            const statusBadges = {
+                'pending': '<span class="badge badge-warning">Gözləyir</span>',
+                'approved': '<span class="badge badge-success">Təsdiqləndi</span>',
+                'rejected': '<span class="badge badge-danger">Rədd edildi</span>'
+            };
+
+            tbody.innerHTML = filtered.sort((a, b) => new Date(b.date) - new Date(a.date)).map(o => {
+                const worker = workers.find(w => w.id === o.workerId);
+                return `<tr>
+                    <td>${formatDate(o.date)}</td>
+                    <td><strong>${worker?.name || 'Naməlum'}</strong></td>
+                    <td>${o.hours} saat</td>
+                    <td>${o.reason}</td>
+                    <td>${formatCurrency(o.payment || 0)}</td>
+                    <td>${statusBadges[o.status]}</td>
+                    <td>
+                        <div class="action-btns">
+                            ${o.status === 'pending' ? `
+                                <button class="btn-action btn-success" onclick="approveOvertime(${o.id})" title="Təsdiqlə"><i class="bi bi-check-lg"></i></button>
+                                <button class="btn-action btn-delete" onclick="rejectOvertime(${o.id})" title="Rədd et"><i class="bi bi-x-lg"></i></button>
+                            ` : ''}
+                            <button class="btn-action btn-delete" onclick="deleteOvertime(${o.id})" title="Sil"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Save new overtime
+        function saveOvertime() {
+            const form = document.getElementById('addOvertimeForm');
+            const formData = new FormData(form);
+
+            const workerId = parseInt(formData.get('workerId'));
+            const hours = parseFloat(formData.get('hours'));
+            const rate = parseFloat(formData.get('rate'));
+
+            const overtime = getOvertime();
+            overtime.push({
+                id: Date.now(),
+                workerId: workerId,
+                date: formData.get('date'),
+                hours: hours,
+                reason: formData.get('reason'),
+                rate: rate,
+                payment: calculatePayment(hours, rate, workerId),
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+
+            saveOvertimeData(overtime);
+            closeModal('addOvertimeModal');
+            form.reset();
+            loadOvertime();
+            loadStats();
+            showAlert('Məsai qeydi əlavə edildi', 'success');
+        }
+
+        function approveOvertime(id) {
+            let overtime = getOvertime();
+            const idx = overtime.findIndex(o => o.id === id);
+            if (idx !== -1) {
+                overtime[idx].status = 'approved';
+                overtime[idx].approvedBy = currentUser.id;
+                overtime[idx].approvedAt = new Date().toISOString();
+                saveOvertimeData(overtime);
+                loadOvertime();
+                loadStats();
+                showAlert('Məsai təsdiqləndi', 'success');
+            }
+        }
+
+        function rejectOvertime(id) {
+            let overtime = getOvertime();
+            const idx = overtime.findIndex(o => o.id === id);
+            if (idx !== -1) {
+                overtime[idx].status = 'rejected';
+                saveOvertimeData(overtime);
+                loadOvertime();
+                loadStats();
+                showAlert('Məsai rədd edildi', 'danger');
+            }
+        }
+
+        function deleteOvertime(id) {
+            if (!confirm('Bu məsai qeydini silmək istədiyinizə əminsiniz?')) return;
+            let overtime = getOvertime();
+            overtime = overtime.filter(o => o.id !== id);
+            saveOvertimeData(overtime);
+            loadOvertime();
+            loadStats();
+            showAlert('Məsai qeydi silindi', 'success');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Event listeners
+        document.getElementById('monthFilter')?.addEventListener('change', loadOvertime);
+        document.getElementById('workerFilter')?.addEventListener('change', loadOvertime);
+        document.getElementById('statusFilter')?.addEventListener('change', loadOvertime);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initOvertime();
+            loadFilters();
+            loadOvertime();
+            loadStats();
+        });
+    </script>
+</body>
+</html>

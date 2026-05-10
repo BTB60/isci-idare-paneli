@@ -1,0 +1,367 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tapşırıqlarım - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div>
+                    <h2>555 İnşaat</h2>
+                    <small>İşçi Paneli</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="worker-dashboard.html" class="nav-item">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="worker-performance.html" class="nav-item">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Performansım</span>
+                </a>
+                <a href="worker-tasks.html" class="nav-item active">
+                    <i class="bi bi-list-task"></i>
+                    <span>Tapşırıqlarım</span>
+                </a>
+                <a href="worker-salary.html" class="nav-item">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Maaşım</span>
+                </a>
+                <a href="worker-permissions.html" class="nav-item">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>İcazələrim</span>
+                </a>
+                <a href="worker-shift-change.html" class="nav-item">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Növbə Dəyişmə</span>
+                </a>
+            </nav>
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Tapşırıqlarım</h1>
+                    <p>Mənə təyin edilmiş tapşırıqlar</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Task Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-list-task"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Tapşırıq</h3>
+                            <p class="stat-value" id="totalTasks">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Gözləyən</h3>
+                            <p class="stat-value" id="pendingTasks">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="bi bi-arrow-repeat"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>İcrada</h3>
+                            <p class="stat-value" id="inProgressTasks">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Tamamlanan</h3>
+                            <p class="stat-value" id="completedTasks">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="filterTasks('all')">Hamısı</button>
+                    <button class="tab-btn" onclick="filterTasks('pending')">Gözləyən</button>
+                    <button class="tab-btn" onclick="filterTasks('in-progress')">İcrada</button>
+                    <button class="tab-btn" onclick="filterTasks('completed')">Tamamlanan</button>
+                </div>
+
+                <!-- Tasks List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-kanban"></i> Tapşırıq Siyahısı</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="tasksList">
+                            <!-- Dynamic content -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Task Detail Modal -->
+    <div class="modal" id="taskDetailModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Tapşırıq Detalları</h3>
+                    <button class="btn-close" onclick="closeModal('taskDetailModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div id="taskDetailContent">
+                        <!-- Dynamic content -->
+                    </div>
+                </div>
+                <div class="modal-footer" id="taskDetailFooter">
+                    <!-- Dynamic buttons -->
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="worker-shell.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (currentUser && userRoleLanding(currentUser) !== 'worker') {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userPosition').textContent = currentUser.position;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        let currentFilter = 'all';
+        let myTasks = [];
+
+        // Load tasks
+        function loadTasks() {
+            if (!currentUser) return;
+
+            const tasks = getTasks();
+            myTasks = tasks.filter(t => t.assignedTo === currentUser.id);
+
+            // Update stats
+            document.getElementById('totalTasks').textContent = myTasks.length;
+            document.getElementById('pendingTasks').textContent = myTasks.filter(t => t.status === 'pending').length;
+            document.getElementById('inProgressTasks').textContent = myTasks.filter(t => t.status === 'in-progress').length;
+            document.getElementById('completedTasks').textContent = myTasks.filter(t => t.status === 'completed').length;
+
+            // Render tasks
+            renderTasks();
+        }
+
+        // Filter tasks
+        function filterTasks(status) {
+            currentFilter = status;
+            
+            // Update tab buttons
+            document.querySelectorAll('.tab-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+            
+            renderTasks();
+        }
+
+        // Render tasks
+        function renderTasks() {
+            const container = document.getElementById('tasksList');
+            
+            let filtered = myTasks;
+            if (currentFilter !== 'all') {
+                filtered = myTasks.filter(t => t.status === currentFilter);
+            }
+
+            // Sort by date (newest first)
+            filtered.sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>Tapşırıq yoxdur</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="tasks-grid">
+                    ${filtered.map(task => {
+                        const statusConfig = {
+                            'pending': { label: 'Gözləyir', class: 'warning', icon: 'hourglass-split' },
+                            'in-progress': { label: 'İcrada', class: 'info', icon: 'arrow-repeat' },
+                            'completed': { label: 'Tamamlandı', class: 'success', icon: 'check-circle' }
+                        }[task.status] || { label: task.status, class: 'secondary', icon: 'circle' };
+
+                        const priorityConfig = {
+                            'high': { label: 'Yüksək', class: 'danger' },
+                            'medium': { label: 'Orta', class: 'warning' },
+                            'low': { label: 'Aşağı', class: 'success' }
+                        }[task.priority] || { label: task.priority, class: 'secondary' };
+
+                        return `
+                            <div class="task-card ${task.status}" onclick="viewTask(${task.id})">
+                                <div class="task-header">
+                                    <h4>${task.title}</h4>
+                                    <span class="badge badge-${statusConfig.class}">
+                                        <i class="bi bi-${statusConfig.icon}"></i> ${statusConfig.label}
+                                    </span>
+                                </div>
+                                <p class="task-description">${task.description}</p>
+                                <div class="task-footer">
+                                    <span class="badge badge-${priorityConfig.class}">
+                                        <i class="bi bi-flag"></i> ${priorityConfig.label}
+                                    </span>
+                                    <small class="text-muted">
+                                        <i class="bi bi-calendar"></i> ${formatDate(task.createdAt)}
+                                    </small>
+                                </div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // View task detail
+        function viewTask(taskId) {
+            const task = myTasks.find(t => t.id === taskId);
+            if (!task) return;
+
+            const statusConfig = {
+                'pending': { label: 'Gözləyir', class: 'warning' },
+                'in-progress': { label: 'İcrada', class: 'info' },
+                'completed': { label: 'Tamamlandı', class: 'success' }
+            }[task.status] || { label: task.status, class: 'secondary' };
+
+            const priorityConfig = {
+                'high': { label: 'Yüksək', class: 'danger' },
+                'medium': { label: 'Orta', class: 'warning' },
+                'low': { label: 'Aşağı', class: 'success' }
+            }[task.priority] || { label: task.priority, class: 'secondary' };
+
+            document.getElementById('taskDetailContent').innerHTML = `
+                <div class="task-detail">
+                    <div class="detail-row">
+                        <label>Başlıq:</label>
+                        <p>${task.title}</p>
+                    </div>
+                    <div class="detail-row">
+                        <label>Təsvir:</label>
+                        <p>${task.description}</p>
+                    </div>
+                    <div class="detail-row">
+                        <label>Status:</label>
+                        <span class="badge badge-${statusConfig.class}">${statusConfig.label}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Prioritet:</label>
+                        <span class="badge badge-${priorityConfig.class}">${priorityConfig.label}</span>
+                    </div>
+                    <div class="detail-row">
+                        <label>Tarix:</label>
+                        <p>${formatDate(task.createdAt)}</p>
+                    </div>
+                </div>
+            `;
+
+            // Footer buttons based on status
+            let footerHtml = `
+                <button type="button" class="btn btn-secondary" onclick="closeModal('taskDetailModal')">Bağla</button>
+            `;
+
+            if (task.status === 'pending') {
+                footerHtml += `
+                    <button type="button" class="btn btn-primary" onclick="updateTaskStatus(${task.id}, 'in-progress')">
+                        <i class="bi bi-play"></i> Başlat
+                    </button>
+                `;
+            } else if (task.status === 'in-progress') {
+                footerHtml += `
+                    <button type="button" class="btn btn-success" onclick="updateTaskStatus(${task.id}, 'completed')">
+                        <i class="bi bi-check"></i> Tamamla
+                    </button>
+                `;
+            }
+
+            document.getElementById('taskDetailFooter').innerHTML = footerHtml;
+
+            openModal('taskDetailModal');
+        }
+
+        // Update task status
+        function updateTaskStatus(taskId, newStatus) {
+            const tasks = getTasks();
+            const taskIndex = tasks.findIndex(t => t.id === taskId);
+            
+            if (taskIndex !== -1) {
+                tasks[taskIndex].status = newStatus;
+                tasks[taskIndex].updatedAt = new Date().toISOString();
+                saveData('tasks', tasks);
+                
+                closeModal('taskDetailModal');
+                loadTasks();
+                
+                // Show success message
+                showNotification('Tapşırıq statusu yeniləndi', 'success');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadTasks);
+    </script>
+</body>
+</html>

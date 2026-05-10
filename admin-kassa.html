@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kasa — mədaxil / məxaric - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Kasa əməliyyatları</h1>
+                    <p>Satıcı/kassa panelində qeyd olunan <strong>mədaxil</strong> və <strong>məxaric</strong> siyahısı</p>
+                </div>
+                <div class="topbar-right">
+                    <button type="button" id="mobileMenuBtn" class="btn-icon mobile-menu-btn sidebar-toggle-mobile" aria-label="Menyu">
+                        <i class="bi bi-layout-sidebar-inset-reverse"></i>
+                    </button>
+                    <button type="button" class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="alert alert-info" style="margin-bottom: 20px;">
+                    <i class="bi bi-info-circle"></i>
+                    Qeydlər bu brauzerdə saxlanılır (<code>localStorage</code>). Satıcı ilə <strong>eyni kompüter və brauzerdə</strong> baxırsınızsa burada görünür;
+                    serverə köçürülməyibsə başqa cihazda boş ola bilər.
+                </div>
+
+                <div class="card" style="margin-bottom: 24px; border-left: 4px solid var(--warning);">
+                    <div class="card-header" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 12px;">
+                        <h3 style="margin: 0;"><i class="bi bi-toggle-on"></i> Məxaric (rəsxod) — aktiv / söndürülüb</h3>
+                        <span id="mexaricStatusBadge" class="badge badge-secondary">—</span>
+                    </div>
+                    <div class="card-body">
+                        <label style="display: flex; align-items: flex-start; gap: 14px; cursor: pointer; margin: 0;">
+                            <input type="checkbox" id="toggleKassaMexaric" style="width: 20px; height: 20px; margin-top: 2px;">
+                            <span style="font-size: 14px; line-height: 1.55;">
+                                <strong>Satıcı və kassa panelində məxaric bölməsini göstər</strong><br>
+                                <small style="color: var(--gray);">Söndürüləndə satıcı yalnız <strong>mədaxil</strong> görür və yazır; burada köhnə məxaric sətirləri də “tam siyahı” filtindən çıxmayacaq, sadəcə satıcı tərəfində gizlədilir.</small>
+                            </span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="stats-grid" style="margin-bottom: 24px;">
+                    <div class="stat-card">
+                        <div class="stat-icon green"><i class="bi bi-arrow-down-left"></i></div>
+                        <div class="stat-info">
+                            <h3>Cəmi mədaxil</h3>
+                            <p class="stat-value" id="sumInAll">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red"><i class="bi bi-arrow-up-right"></i></div>
+                        <div class="stat-info">
+                            <h3>Cəmi məxaric</h3>
+                            <p class="stat-value" id="sumOutAll">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon cyan"><i class="bi bi-calculator"></i></div>
+                        <div class="stat-info">
+                            <h3>Xalis</h3>
+                            <p class="stat-value" id="sumNetAll">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple"><i class="bi bi-list-ol"></i></div>
+                        <div class="stat-info">
+                            <h3>Ümumi əməliyyat</h3>
+                            <p class="stat-value" id="txCountAll">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-table"></i> Bütün qeydlər</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="form-row" style="flex-wrap: wrap; gap: 16px; margin-bottom: 20px; align-items: flex-end;">
+                            <div class="form-group" style="min-width: 140px;">
+                                <label>Tip</label>
+                                <select id="filterType" class="form-control">
+                                    <option value="all">Hamısı</option>
+                                    <option value="in">Yalnız mədaxil</option>
+                                    <option value="out">Yalnız məxaric</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="min-width: 160px;">
+                                <label>Tarixdən</label>
+                                <input type="date" id="filterFrom" class="form-control">
+                            </div>
+                            <div class="form-group" style="min-width: 160px;">
+                                <label>Tarixədək</label>
+                                <input type="date" id="filterTo" class="form-control">
+                            </div>
+                            <button type="button" class="btn btn-secondary" id="btnClearFilters">
+                                <i class="bi bi-x-lg"></i> Təmizlə
+                            </button>
+                            <button type="button" class="btn btn-primary" id="btnRefreshKassa">
+                                <i class="bi bi-arrow-clockwise"></i> Yenilə
+                            </button>
+                        </div>
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tip</th>
+                                        <th>Tarix</th>
+                                        <th>Məbləğ</th>
+                                        <th>Təfərrüat</th>
+                                        <th>Qeyd edən</th>
+                                        <th>Qeyd</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="adminKassaBody">
+                                    <tr><td colspan="6" class="text-center">Yüklənir…</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="seller-desk.js"></script>
+    <script src="kassa-settings.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') {
+            window.location.href = 'worker-dashboard.html';
+        }
+
+        const methodLabels = { nagd: 'Nağd', kart: 'Kart/POS', kocurme: 'Köçürmə', mix: 'Digər' };
+        const expenseCatLabels = {
+            material: 'Mal-material',
+            emek_haqqi_elave: 'İşçi / əmək əlavəsi',
+            neqliyyat: 'Nəqliyyat',
+            kommunal: 'Kommunal / ofis',
+            qida: 'Qida / içki',
+            satis_odemis: 'Satınalma ödənişi',
+            diger: 'Digər rəsxod'
+        };
+
+        function escapeHtml(s) {
+            const d = document.createElement('div');
+            d.textContent = s == null ? '' : String(s);
+            return d.innerHTML;
+        }
+
+        function directionLabel(row) {
+            const dir = row.direction || 'in';
+            return dir === 'out'
+                ? '<span class="badge badge-danger">Məxaric</span>'
+                : '<span class="badge badge-success">Mədaxil</span>';
+        }
+
+        function detailCell(row) {
+            if ((row.direction || 'in') === 'out') {
+                const c = row.expenseCategory || 'diger';
+                return escapeHtml(expenseCatLabels[c] || c) + ' · ' + escapeHtml(methodLabels[row.method] || row.method || '');
+            }
+            return escapeHtml(methodLabels[row.method] || row.method || '');
+        }
+
+        function amountCell(row) {
+            const n = parseFloat(row.amount) || 0;
+            const fc = typeof formatCurrency === 'function' ? formatCurrency(n) : `${n.toFixed(2)} ₼`;
+            if ((row.direction || 'in') === 'out') {
+                return '<span style="color: var(--danger); font-weight: 600;">− ' + fc + '</span>';
+            }
+            return '<span style="color: var(--success); font-weight: 600;">+ ' + fc + '</span>';
+        }
+
+        function syncMexaricToggleUI() {
+            const cb = document.getElementById('toggleKassaMexaric');
+            const badge = document.getElementById('mexaricStatusBadge');
+            if (cb && typeof KassaSettings !== 'undefined') {
+                cb.checked = KassaSettings.isMexaricEnabled();
+            }
+            if (badge) {
+                const on = typeof KassaSettings !== 'undefined' && KassaSettings.isMexaricEnabled();
+                badge.textContent = on ? 'Məxaric aktivdir' : 'Məxaric söndürülüb';
+                badge.className = 'badge ' + (on ? 'badge-success' : 'badge-secondary');
+            }
+        }
+
+        function renderTable() {
+            const tbody = document.getElementById('adminKassaBody');
+            let rows = SellerDesk.getTransactions().slice().reverse();
+
+            const type = document.getElementById('filterType').value;
+            if (type === 'in') rows = rows.filter((x) => (x.direction || 'in') === 'in');
+            else if (type === 'out') rows = rows.filter((x) => x.direction === 'out');
+
+            const from = document.getElementById('filterFrom').value;
+            const to = document.getElementById('filterTo').value;
+            if (from) rows = rows.filter((x) => x.date >= from);
+            if (to) rows = rows.filter((x) => x.date <= to);
+
+            let sumIn = 0;
+            let sumOut = 0;
+            SellerDesk.getTransactions().forEach((x) => {
+                const a = parseFloat(x.amount) || 0;
+                if ((x.direction || 'in') === 'out') sumOut += a;
+                else sumIn += a;
+            });
+
+            const sumInEl = document.getElementById('sumInAll');
+            const sumOutEl = document.getElementById('sumOutAll');
+            const netEl = document.getElementById('sumNetAll');
+            const cntEl = document.getElementById('txCountAll');
+            if (sumInEl)
+                sumInEl.textContent =
+                    typeof formatCurrency === 'function' ? formatCurrency(sumIn) : `${sumIn.toFixed(2)} ₼`;
+            if (sumOutEl)
+                sumOutEl.textContent =
+                    typeof formatCurrency === 'function' ? formatCurrency(sumOut) : `${sumOut.toFixed(2)} ₼`;
+            const net = sumIn - sumOut;
+            if (netEl) {
+                netEl.textContent =
+                    typeof formatCurrency === 'function' ? formatCurrency(net) : `${net.toFixed(2)} ₼`;
+                netEl.style.color = net >= 0 ? 'var(--success)' : 'var(--danger)';
+            }
+            if (cntEl) cntEl.textContent = String(SellerDesk.getTransactions().length);
+
+            if (!tbody) return;
+
+            if (rows.length === 0) {
+                tbody.innerHTML =
+                    '<tr><td colspan="6" class="text-center">Qeyd yoxdur və ya filtrə uyğun nəticə yoxdur.</td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = rows.map((row) => `
+                <tr>
+                    <td>${directionLabel(row)}</td>
+                    <td>${escapeHtml(row.date)}</td>
+                    <td>${amountCell(row)}</td>
+                    <td>${detailCell(row)}</td>
+                    <td>${escapeHtml(row.enteredByName || '')}</td>
+                    <td>${escapeHtml(row.note || '')}</td>
+                </tr>
+            `).join('');
+        }
+
+        document.getElementById('toggleKassaMexaric').addEventListener('change', function () {
+            if (typeof KassaSettings !== 'undefined') {
+                KassaSettings.setMexaricEnabled(this.checked);
+                syncMexaricToggleUI();
+            }
+        });
+
+        ['filterType', 'filterFrom', 'filterTo'].forEach((id) => {
+            document.getElementById(id).addEventListener('change', renderTable);
+            document.getElementById(id).addEventListener('input', renderTable);
+        });
+
+        document.getElementById('btnClearFilters').addEventListener('click', () => {
+            document.getElementById('filterType').value = 'all';
+            document.getElementById('filterFrom').value = '';
+            document.getElementById('filterTo').value = '';
+            renderTable();
+        });
+
+        document.getElementById('btnRefreshKassa').addEventListener('click', renderTable);
+
+        window.addEventListener('storage', (ev) => {
+            if (typeof KassaSettings !== 'undefined' && ev.key === KassaSettings.STORAGE_KEY) {
+                syncMexaricToggleUI();
+            }
+            if (ev.key === SellerDesk.STORAGE_TX || ev.key === 'cash_register_deposits_v1') {
+                renderTable();
+            }
+        });
+
+        syncMexaricToggleUI();
+        renderTable();
+    </script>
+</body>
+</html>

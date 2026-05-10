@@ -1,0 +1,491 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Təhlükəsizlik - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>İş Təhlükəsizliyi</h1><p>Təhlükəsizlik qaydaları və hadisələr</p></div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openModal('addIncidentModal')">
+                        <i class="bi bi-plus"></i> Hadisə Əlavə Et
+                    </button>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Safety Rules Card -->
+                <div class="card" style="background: linear-gradient(135deg, rgba(255,193,7,0.1) 0%, rgba(255,193,7,0.05) 100%); border-left: 4px solid #ffc107;">
+                    <div class="card-body">
+                        <div style="display: flex; align-items: center; gap: 16px;">
+                            <i class="bi bi-exclamation-triangle-fill" style="font-size: 32px; color: #ffc107;"></i>
+                            <div>
+                                <h4 style="margin-bottom: 4px; color: #856404;">Təhlükəsizlik Qaydaları</h4>
+                                <p style="margin: 0; color: var(--gray);">Bütün işçilər iş başlamazdan əvvəl təhlükəsizlik qaydaları ilə tanış olmalıdır. <strong>Kaska, əlcək və təhlükəsizlik ayaqqabısı</strong> mütləqdir.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-shield-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Təlim Keçən</h3>
+                            <p class="stat-value" id="trainedCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-award"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Sertifikatlı</h3>
+                            <p class="stat-value" id="certifiedCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-bandaid"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Hadisə (Ay)</h3>
+                            <p class="stat-value" id="incidentCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-exclamation-octagon"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ağır Hadisə</h3>
+                            <p class="stat-value" id="seriousCount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="showTab('incidents')">Hadisələr</button>
+                    <button class="tab-btn" onclick="showTab('trainings')">Təlimlər</button>
+                    <button class="tab-btn" onclick="showTab('equipment')">Ləvazimatlar</button>
+                </div>
+
+                <!-- Incidents Tab -->
+                <div id="incidents" class="tab-content active">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-bandaid"></i> Qəza Hadisələri</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Tarix</th>
+                                            <th>İşçi</th>
+                                            <th>Tip</th>
+                                            <th>Təsvir</th>
+                                            <th>Ciddilik</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="incidentsTableBody">
+                                        <tr><td colspan="6" class="text-center">Məlumat yüklənir...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Trainings Tab -->
+                <div id="trainings" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-award"></i> Təhlükəsizlik Təlimləri</h3>
+                            <button class="btn btn-sm btn-primary" onclick="openModal('addTrainingModal')">Təlim Əlavə Et</button>
+                        </div>
+                        <div class="card-body">
+                            <div class="table-container">
+                                <table class="data-table">
+                                    <thead>
+                                        <tr>
+                                            <th>İşçi</th>
+                                            <th>Təlim</th>
+                                            <th>Tarix</th>
+                                            <th>Sertifikat</th>
+                                            <th>Bitmə Tarixi</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="trainingsTableBody">
+                                        <tr><td colspan="6" class="text-center">Məlumat yüklənir...</td></tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Equipment Tab -->
+                <div id="equipment" class="tab-content">
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-tools"></i> Təhlükəsizlik Ləvazimatları</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="dashboard-grid">
+                                <div class="card">
+                                    <div class="card-body" style="text-align: center; padding: 40px;">
+                                        <i class="bi bi-helmet" style="font-size: 48px; color: var(--primary);"></i>
+                                        <h4 style="margin: 16px 0 8px;">Kaska</h4>
+                                        <p class="text-muted">Baş qoruması üçün vacibdir</p>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body" style="text-align: center; padding: 40px;">
+                                        <i class="bi bi-hand-thumbs-up" style="font-size: 48px; color: var(--primary);"></i>
+                                        <h4 style="margin: 16px 0 8px;">Əlcək</h4>
+                                        <p class="text-muted">Əl qoruması üçün vacibdir</p>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body" style="text-align: center; padding: 40px;">
+                                        <i class="bi bi-boot" style="font-size: 48px; color: var(--primary);"></i>
+                                        <h4 style="margin: 16px 0 8px;">Təhlükəsizlik Ayaqqabısı</h4>
+                                        <p class="text-muted">Ayaq qoruması üçün vacibdir</p>
+                                    </div>
+                                </div>
+                                <div class="card">
+                                    <div class="card-body" style="text-align: center; padding: 40px;">
+                                        <i class="bi bi-eye" style="font-size: 48px; color: var(--primary);"></i>
+                                        <h4 style="margin: 16px 0 8px;">Göz Qoruması</h4>
+                                        <p class="text-muted">Göz qoruması üçün vacibdir</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Incident Modal -->
+    <div class="modal" id="addIncidentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-bandaid"></i> Hadisə Əlavə Et</h3>
+                <button class="modal-close" onclick="closeModal('addIncidentModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addIncidentForm">
+                    <div class="form-group">
+                        <label>İşçi *</label>
+                        <select name="workerId" class="form-control" required>
+                            <option value="">İşçi seçin</option>
+                        </select>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tarix *</label>
+                            <input type="date" name="date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Tip *</label>
+                            <select name="type" class="form-control" required>
+                                <option value="injury">Xəsarət</option>
+                                <option value="near_miss">Təhlükəli Vəziyyət</option>
+                                <option value="equipment">Avadanlıq Zədəsi</option>
+                                <option value="other">Digər</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Ciddilik *</label>
+                        <select name="severity" class="form-control" required>
+                            <option value="low">Aşağı</option>
+                            <option value="medium">Orta</option>
+                            <option value="high">Yüksək</option>
+                            <option value="critical">Kritik</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Təsvir *</label>
+                        <textarea name="description" class="form-control" rows="3" required placeholder="Hadisə təsviri..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label>Görülən Tədbirlər</label>
+                        <textarea name="actions" class="form-control" rows="2" placeholder="Görülən tədbirlər..."></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addIncidentModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="saveIncident()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Training Modal -->
+    <div class="modal" id="addTrainingModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-award"></i> Təlim Əlavə Et</h3>
+                <button class="modal-close" onclick="closeModal('addTrainingModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addTrainingForm">
+                    <div class="form-group">
+                        <label>İşçi *</label>
+                        <select name="workerId" class="form-control" required>
+                            <option value="">İşçi seçin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Təlim Adı *</label>
+                        <input type="text" name="name" class="form-control" placeholder="Məsələn: İş Təhlükəsizliyi Təlimi" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tarix *</label>
+                            <input type="date" name="date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Sertifikat Nömrəsi</label>
+                            <input type="text" name="certificate" class="form-control" placeholder="Sertifikat nömrəsi">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Bitmə Tarixi</label>
+                        <input type="date" name="expiryDate" class="form-control">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addTrainingModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="saveTraining()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        // Initialize safety data
+        function initSafety() {
+            if (!localStorage.getItem('incidents')) {
+                localStorage.setItem('incidents', JSON.stringify([]));
+            }
+            if (!localStorage.getItem('trainings')) {
+                localStorage.setItem('trainings', JSON.stringify([]));
+            }
+        }
+
+        function getIncidents() {
+            return JSON.parse(localStorage.getItem('incidents') || '[]');
+        }
+
+        function getTrainings() {
+            return JSON.parse(localStorage.getItem('trainings') || '[]');
+        }
+
+        // Load worker options
+        function loadWorkerOptions() {
+            const workers = getWorkers();
+            const options = workers.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+            document.querySelector('#addIncidentForm select[name="workerId"]').innerHTML += options;
+            document.querySelector('#addTrainingForm select[name="workerId"]').innerHTML += options;
+        }
+
+        // Load stats
+        function loadStats() {
+            const trainings = getTrainings();
+            const incidents = getIncidents();
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+
+            const trainedWorkers = [...new Set(trainings.map(t => t.workerId))].length;
+            const certified = trainings.filter(t => t.certificate && new Date(t.expiryDate) > new Date()).length;
+            
+            const thisMonthIncidents = incidents.filter(i => {
+                const d = new Date(i.date);
+                return d.getMonth() + 1 === currentMonth && d.getFullYear() === currentYear;
+            });
+            
+            const seriousIncidents = thisMonthIncidents.filter(i => 
+                i.severity === 'high' || i.severity === 'critical'
+            ).length;
+
+            document.getElementById('trainedCount').textContent = trainedWorkers;
+            document.getElementById('certifiedCount').textContent = certified;
+            document.getElementById('incidentCount').textContent = thisMonthIncidents.length;
+            document.getElementById('seriousCount').textContent = seriousIncidents;
+        }
+
+        // Tab switching
+        function showTab(tabName) {
+            document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.getElementById(tabName).classList.add('active');
+            event.target.classList.add('active');
+        }
+
+        // Load incidents
+        function loadIncidents() {
+            const incidents = getIncidents();
+            const workers = getWorkers();
+            const tbody = document.getElementById('incidentsTableBody');
+
+            if (incidents.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Hadisə qeydi yoxdur</td></tr>';
+                return;
+            }
+
+            const typeLabels = {
+                'injury': 'Xəsarət',
+                'near_miss': 'Təhlükəli Vəziyyət',
+                'equipment': 'Avadanlıq Zədəsi',
+                'other': 'Digər'
+            };
+
+            const severityBadges = {
+                'low': '<span class="badge badge-success">Aşağı</span>',
+                'medium': '<span class="badge badge-warning">Orta</span>',
+                'high': '<span class="badge badge-danger">Yüksək</span>',
+                'critical': '<span class="badge badge-danger">Kritik</span>'
+            };
+
+            tbody.innerHTML = incidents.sort((a, b) => new Date(b.date) - new Date(a.date)).map(i => {
+                const worker = workers.find(w => w.id === i.workerId);
+                return `<tr>
+                    <td>${formatDate(i.date)}</td>
+                    <td><strong>${worker?.name || 'Naməlum'}</strong></td>
+                    <td>${typeLabels[i.type] || i.type}</td>
+                    <td>${i.description}</td>
+                    <td>${severityBadges[i.severity]}</td>
+                    <td><span class="badge badge-info">Açıq</span></td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Load trainings
+        function loadTrainings() {
+            const trainings = getTrainings();
+            const workers = getWorkers();
+            const tbody = document.getElementById('trainingsTableBody');
+
+            if (trainings.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="text-center">Təlim qeydi yoxdur</td></tr>';
+                return;
+            }
+
+            const today = new Date();
+
+            tbody.innerHTML = trainings.sort((a, b) => new Date(b.date) - new Date(a.date)).map(t => {
+                const worker = workers.find(w => w.id === t.workerId);
+                let status = '<span class="badge badge-success">Aktiv</span>';
+                if (t.expiryDate && new Date(t.expiryDate) < today) {
+                    status = '<span class="badge badge-danger">Bitmiş</span>';
+                }
+
+                return `<tr>
+                    <td><strong>${worker?.name || 'Naməlum'}</strong></td>
+                    <td>${t.name}</td>
+                    <td>${formatDate(t.date)}</td>
+                    <td>${t.certificate || '-'}</td>
+                    <td>${t.expiryDate ? formatDate(t.expiryDate) : '-'}</td>
+                    <td>${status}</td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Save incident
+        function saveIncident() {
+            const form = document.getElementById('addIncidentForm');
+            const formData = new FormData(form);
+
+            const incidents = getIncidents();
+            incidents.push({
+                id: Date.now(),
+                workerId: parseInt(formData.get('workerId')),
+                date: formData.get('date'),
+                type: formData.get('type'),
+                severity: formData.get('severity'),
+                description: formData.get('description'),
+                actions: formData.get('actions'),
+                createdAt: new Date().toISOString()
+            });
+
+            localStorage.setItem('incidents', JSON.stringify(incidents));
+            closeModal('addIncidentModal');
+            form.reset();
+            loadIncidents();
+            loadStats();
+            showAlert('Hadisə qeydi əlavə edildi', 'success');
+        }
+
+        // Save training
+        function saveTraining() {
+            const form = document.getElementById('addTrainingForm');
+            const formData = new FormData(form);
+
+            const trainings = getTrainings();
+            trainings.push({
+                id: Date.now(),
+                workerId: parseInt(formData.get('workerId')),
+                name: formData.get('name'),
+                date: formData.get('date'),
+                certificate: formData.get('certificate'),
+                expiryDate: formData.get('expiryDate'),
+                createdAt: new Date().toISOString()
+            });
+
+            localStorage.setItem('trainings', JSON.stringify(trainings));
+            closeModal('addTrainingModal');
+            form.reset();
+            loadTrainings();
+            loadStats();
+            showAlert('Təlim qeydi əlavə edildi', 'success');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initSafety();
+            loadWorkerOptions();
+            loadIncidents();
+            loadTrainings();
+            loadStats();
+        });
+    </script>
+</body>
+</html>

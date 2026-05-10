@@ -1,0 +1,531 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cərimələr - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Cərimələr</h1>
+                    <p>İşçi cərimələri idarəetmə</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openAddPenaltyModal()">
+                        <i class="bi bi-plus"></i> Yeni Cərimə
+                    </button>
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Cərimə</h3>
+                            <p class="stat-value" id="totalPenaltiesCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-cash"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Məbləğ</h3>
+                            <p class="stat-value" id="totalPenaltyAmount">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="bi bi-clock"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aktiv Cərimə</h3>
+                            <p class="stat-value" id="activePenalties">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ödənilmiş</h3>
+                            <p class="stat-value" id="paidPenalties">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filter -->
+                <div class="card">
+                    <div class="card-body">
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label>İşçi</label>
+                                <select class="form-control" id="workerFilter" onchange="loadPenalties()">
+                                    <option value="">Hamısı</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Status</label>
+                                <select class="form-control" id="statusFilter" onchange="loadPenalties()">
+                                    <option value="">Hamısı</option>
+                                    <option value="active">Aktiv</option>
+                                    <option value="paid">Ödənilmiş</option>
+                                    <option value="cancelled">Ləğv edilmiş</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Ay</label>
+                                <select class="form-control" id="monthFilter" onchange="loadPenalties()">
+                                    <option value="">Hamısı</option>
+                                    <option value="1">Yanvar</option>
+                                    <option value="2">Fevral</option>
+                                    <option value="3">Mart</option>
+                                    <option value="4">Aprel</option>
+                                    <option value="5">May</option>
+                                    <option value="6">İyun</option>
+                                    <option value="7">İyul</option>
+                                    <option value="8">Avqust</option>
+                                    <option value="9">Sentyabr</option>
+                                    <option value="10">Oktyabr</option>
+                                    <option value="11">Noyabr</option>
+                                    <option value="12">Dekabr</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Penalties Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-check"></i> Cərimə Siyahısı</h3>
+                        <button class="btn btn-sm btn-secondary" onclick="exportPenalties()">
+                            <i class="bi bi-download"></i> Export
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table" id="penaltiesTable">
+                                <thead>
+                                    <tr>
+                                        <th>İşçi</th>
+                                        <th>Tarix</th>
+                                        <th>Səbəb</th>
+                                        <th>Məbləğ</th>
+                                        <th>Status</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="penaltiesTableBody">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Penalty Modal -->
+    <div class="modal" id="addPenaltyModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="bi bi-exclamation-triangle"></i> Yeni Cərimə Əlavə Et</h3>
+                    <button class="btn-close" onclick="closeModal('addPenaltyModal')">&times;</button>
+                </div>
+                <form id="addPenaltyForm" onsubmit="submitPenalty(event)">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>İşçi *</label>
+                            <select class="form-control" name="workerId" required>
+                                <option value="">İşçi seçin...</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Cərimə Tarixi *</label>
+                            <input type="date" class="form-control" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Məbləğ (₼) *</label>
+                            <input type="number" class="form-control" name="amount" min="1" step="0.01" placeholder="Məs: 50" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Səbəb *</label>
+                            <textarea class="form-control" name="reason" rows="3" placeholder="Cərimə səbəbini detallı yazın..." required></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Qeyd (istəyə bağlı)</label>
+                            <textarea class="form-control" name="note" rows="2" placeholder="Əlavə qeydlər..."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('addPenaltyModal')">Ləğv et</button>
+                        <button type="submit" class="btn btn-danger">
+                            <i class="bi bi-exclamation-triangle"></i> Cərimə Əlavə Et
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- View Penalty Modal -->
+    <div class="modal" id="viewPenaltyModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Cərimə Detalları</h3>
+                    <button class="btn-close" onclick="closeModal('viewPenaltyModal')">&times;</button>
+                </div>
+                <div class="modal-body" id="viewPenaltyContent">
+                    <!-- Dynamic content -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" onclick="closeModal('viewPenaltyModal')">Bağla</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') {
+            window.location.href = 'worker-dashboard.html';
+        }
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+        }
+
+        // Initialize worker filter
+        function initFilters() {
+            const workers = getWorkers();
+            const workerOptions = workers.map(w => `<option value="${w.id}">${w.name} (${w.position})</option>`).join('');
+            
+            document.getElementById('workerFilter').innerHTML += workerOptions;
+            document.querySelector('select[name="workerId"]').innerHTML += workerOptions;
+            
+            // Set default date to today
+            document.querySelector('input[name="date"]').value = new Date().toISOString().split('T')[0];
+        }
+
+        // Load penalties
+        function loadPenalties() {
+            const penalties = getPenalties();
+            const workers = getWorkers();
+            
+            const workerFilter = document.getElementById('workerFilter').value;
+            const statusFilter = document.getElementById('statusFilter').value;
+            const monthFilter = document.getElementById('monthFilter').value;
+            
+            let filtered = penalties;
+            
+            if (workerFilter) {
+                filtered = filtered.filter(p => p.workerId == workerFilter);
+            }
+            
+            if (statusFilter) {
+                filtered = filtered.filter(p => p.status === statusFilter);
+            }
+            
+            if (monthFilter) {
+                filtered = filtered.filter(p => {
+                    const pDate = new Date(p.date);
+                    return pDate.getMonth() + 1 == monthFilter;
+                });
+            }
+            
+            // Sort by date (newest first)
+            filtered.sort((a, b) => new Date(b.date) - new Date(a.date));
+            
+            // Update stats
+            updateStats(penalties);
+            
+            // Render table
+            renderPenaltiesTable(filtered, workers);
+        }
+
+        // Update statistics
+        function updateStats(penalties) {
+            const totalCount = penalties.length;
+            const totalAmount = penalties.reduce((sum, p) => sum + (p.amount || 0), 0);
+            const activeCount = penalties.filter(p => p.status === 'active').length;
+            const paidCount = penalties.filter(p => p.status === 'paid').length;
+            
+            document.getElementById('totalPenaltiesCount').textContent = totalCount;
+            document.getElementById('totalPenaltyAmount').textContent = formatCurrency(totalAmount);
+            document.getElementById('activePenalties').textContent = activeCount;
+            document.getElementById('paidPenalties').textContent = paidCount;
+        }
+
+        // Render penalties table
+        function renderPenaltiesTable(penalties, workers) {
+            const tbody = document.getElementById('penaltiesTableBody');
+            
+            if (penalties.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="6" class="text-center">
+                            <div class="empty-state">
+                                <i class="bi bi-inbox"></i>
+                                <p>Cərimə qeydi yoxdur</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+            
+            const statusBadges = {
+                'active': '<span class="badge badge-danger">Aktiv</span>',
+                'paid': '<span class="badge badge-success">Ödənilmiş</span>',
+                'cancelled': '<span class="badge badge-secondary">Ləğv edilmiş</span>'
+            };
+            
+            tbody.innerHTML = penalties.map(p => {
+                const worker = workers.find(w => w.id === p.workerId);
+                return `
+                    <tr>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div class="user-avatar" style="width: 32px; height: 32px; font-size: 14px;">
+                                    ${worker ? worker.name.charAt(0).toUpperCase() : '?'}
+                                </div>
+                                <div>
+                                    <strong>${worker ? worker.name : 'Naməlum'}</strong>
+                                    <small style="display: block; color: var(--gray);">${worker ? worker.position : ''}</small>
+                                </div>
+                            </div>
+                        </td>
+                        <td>${formatDate(p.date)}</td>
+                        <td>
+                            <div style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;" title="${p.reason}">
+                                ${p.reason}
+                            </div>
+                        </td>
+                        <td class="text-danger" style="font-weight: 600;">${formatCurrency(p.amount)}</td>
+                        <td>${statusBadges[p.status] || p.status}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn-action btn-edit" onclick="viewPenalty(${p.id})" title="Bax">
+                                    <i class="bi bi-eye"></i>
+                                </button>
+                                ${p.status === 'active' ? `
+                                    <button class="btn-action btn-delete" onclick="markAsPaid(${p.id})" title="Ödənildi kimi işarələ">
+                                        <i class="bi bi-check-circle"></i>
+                                    </button>
+                                    <button class="btn-action btn-delete" onclick="cancelPenalty(${p.id})" title="Ləğv et">
+                                        <i class="bi bi-x-circle"></i>
+                                    </button>
+                                ` : ''}
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Open add penalty modal
+        function openAddPenaltyModal() {
+            document.getElementById('addPenaltyForm').reset();
+            document.querySelector('input[name="date"]').value = new Date().toISOString().split('T')[0];
+            openModal('addPenaltyModal');
+        }
+
+        // Submit penalty
+        function submitPenalty(event) {
+            event.preventDefault();
+            
+            const form = event.target;
+            const formData = new FormData(form);
+            
+            const penalties = getPenalties();
+            
+            const newPenalty = {
+                id: Date.now(),
+                workerId: parseInt(formData.get('workerId')),
+                date: formData.get('date'),
+                amount: parseFloat(formData.get('amount')),
+                reason: formData.get('reason'),
+                note: formData.get('note'),
+                status: 'active',
+                createdAt: new Date().toISOString(),
+                createdBy: currentUser.id
+            };
+            
+            penalties.push(newPenalty);
+            saveData('penalties', penalties);
+            
+            closeModal('addPenaltyModal');
+            form.reset();
+            loadPenalties();
+            
+            showNotification('Cərimə uğurla əlavə edildi', 'success');
+        }
+
+        // View penalty details
+        function viewPenalty(penaltyId) {
+            const penalties = getPenalties();
+            const workers = getWorkers();
+            const penalty = penalties.find(p => p.id === penaltyId);
+            
+            if (!penalty) return;
+            
+            const worker = workers.find(w => w.id === penalty.workerId);
+            const statusLabels = {
+                'active': '<span class="badge badge-danger">Aktiv</span>',
+                'paid': '<span class="badge badge-success">Ödənilmiş</span>',
+                'cancelled': '<span class="badge badge-secondary">Ləğv edilmiş</span>'
+            };
+            
+            document.getElementById('viewPenaltyContent').innerHTML = `
+                <div class="detail-view">
+                    <div class="detail-row">
+                        <label>İşçi:</label>
+                        <p><strong>${worker ? worker.name : 'Naməlum'}</strong> ${worker ? `(${worker.position})` : ''}</p>
+                    </div>
+                    <div class="detail-row">
+                        <label>Tarix:</label>
+                        <p>${formatDate(penalty.date)}</p>
+                    </div>
+                    <div class="detail-row">
+                        <label>Məbləğ:</label>
+                        <p style="font-size: 24px; color: var(--danger); font-weight: 700;">${formatCurrency(penalty.amount)}</p>
+                    </div>
+                    <div class="detail-row">
+                        <label>Status:</label>
+                        <p>${statusLabels[penalty.status]}</p>
+                    </div>
+                    <div class="detail-row">
+                        <label>Səbəb:</label>
+                        <p style="background: var(--light); padding: 12px; border-radius: var(--radius);">${penalty.reason}</p>
+                    </div>
+                    ${penalty.note ? `
+                        <div class="detail-row">
+                            <label>Qeyd:</label>
+                            <p style="color: var(--gray);">${penalty.note}</p>
+                        </div>
+                    ` : ''}
+                    <div class="detail-row">
+                        <label>Əlavə edilmə tarixi:</label>
+                        <p>${formatDate(penalty.createdAt)}</p>
+                    </div>
+                </div>
+            `;
+            
+            openModal('viewPenaltyModal');
+        }
+
+        // Mark penalty as paid
+        function markAsPaid(penaltyId) {
+            if (!confirm('Bu cəriməni ödənilmiş kimi işarələmək istədiyinizə əminsiniz?')) return;
+            
+            const penalties = getPenalties();
+            const penalty = penalties.find(p => p.id === penaltyId);
+            
+            if (penalty) {
+                penalty.status = 'paid';
+                penalty.paidAt = new Date().toISOString();
+                saveData('penalties', penalties);
+                loadPenalties();
+                showNotification('Cərimə ödənilmiş kimi işarələndi', 'success');
+            }
+        }
+
+        // Cancel penalty
+        function cancelPenalty(penaltyId) {
+            if (!confirm('Bu cəriməni ləğv etmək istədiyinizə əminsiniz?')) return;
+            
+            const penalties = getPenalties();
+            const penalty = penalties.find(p => p.id === penaltyId);
+            
+            if (penalty) {
+                penalty.status = 'cancelled';
+                penalty.cancelledAt = new Date().toISOString();
+                saveData('penalties', penalties);
+                loadPenalties();
+                showNotification('Cərimə ləğv edildi', 'info');
+            }
+        }
+
+        // Export penalties
+        function exportPenalties() {
+            const penalties = getPenalties().map(p => {
+                const worker = getWorkerById(p.workerId);
+                return {
+                    ...p,
+                    workerName: worker ? worker.name : 'Naməlum'
+                };
+            });
+            
+            if (penalties.length === 0) {
+                showNotification('Export ediləcək məlumat yoxdur', 'warning');
+                return;
+            }
+            
+            let csv = '\uFEFF';
+            csv += 'ID,İşçi,Tarix,Məbləğ,Səbəb,Status,Yaradılma Tarixi\n';
+            
+            penalties.forEach(p => {
+                csv += `${p.id},"${p.workerName}",${p.date},${p.amount},"${p.reason}",${p.status},${formatDate(p.createdAt)}\n`;
+            });
+            
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
+            link.download = `cerimeler_${new Date().toISOString().split('T')[0]}.csv`;
+            link.click();
+            
+            showNotification('Cərimələr export edildi', 'success');
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : type === 'danger' ? 'exclamation-triangle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            initFilters();
+            loadPenalties();
+        });
+    </script>
+</body>
+</html>

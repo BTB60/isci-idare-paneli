@@ -1,0 +1,752 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>İşçi Kabineti - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div>
+                    <h2>555 İnşaat</h2>
+                    <small>İşçi Paneli</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="worker-dashboard.html" class="nav-item active">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="worker-performance.html" class="nav-item">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Performansım</span>
+                </a>
+                <a href="worker-tasks.html" class="nav-item">
+                    <i class="bi bi-list-task"></i>
+                    <span>Tapşırıqlarım</span>
+                </a>
+                <a href="worker-projects.html" class="nav-item">
+                    <i class="bi bi-building"></i>
+                    <span>Layihələrim</span>
+                </a>
+                <a href="worker-overtime.html" class="nav-item">
+                    <i class="bi bi-clock-fill"></i>
+                    <span>Məsai</span>
+                </a>
+                <a href="worker-advances.html" class="nav-item">
+                    <i class="bi bi-cash-coin"></i>
+                    <span>Avanslarım</span>
+                </a>
+                <a href="worker-salary.html" class="nav-item">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Maaşım</span>
+                </a>
+                <a href="worker-targets.html" class="nav-item">
+                    <i class="bi bi-bullseye"></i>
+                    <span>Hədəflərim</span>
+                </a>
+                <a href="worker-permissions.html" class="nav-item">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>İcazələrim</span>
+                </a>
+                <a href="worker-documents.html" class="nav-item">
+                    <i class="bi bi-file-earmark-text"></i>
+                    <span>Sənədlərim</span>
+                </a>
+                <a href="worker-shift-change.html" class="nav-item">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Növbə Dəyişmə</span>
+                </a>
+            </nav>
+
+       
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>İşçi Kabineti</h1>
+                    <p>Şəxsi məlumatlar və statistika</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-success" id="checkInBtn" onclick="checkIn()">
+                        <i class="bi bi-box-arrow-in-right"></i> İşə Gəldim
+                    </button>
+                    <button class="btn btn-danger" id="checkOutBtn" onclick="checkOut()" style="display: none;">
+                        <i class="bi bi-box-arrow-right"></i> İşdən Çıxıram
+                    </button>
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Welcome Card -->
+                <div class="card">
+                    <div class="card-body" style="display: flex; align-items: center; gap: 20px;">
+                        <div class="user-avatar" style="width: 80px; height: 80px; font-size: 32px;" id="welcomeAvatar">W</div>
+                        <div>
+                            <h2 style="margin-bottom: 8px;">Xoş gəlmisiniz, <span id="welcomeName">İşçi</span>!</h2>
+                            <p style="color: var(--gray);">Bugün: <span id="currentDate"></span></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-cash"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bugünkü Maaşım</h3>
+                            <p class="stat-value" id="todaySalary">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-gift"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bonuslarım</h3>
+                            <p class="stat-value" id="totalBonus">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-exclamation-triangle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Cərimələrim</h3>
+                            <p class="stat-value" id="totalPenalty">0 ₼</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-calendar-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bu ay iş günü</h3>
+                            <p class="stat-value" id="workDays">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="dashboard-grid">
+                    <!-- Left Column -->
+                    <div>
+                        <!-- Monthly Salary Calculation -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="bi bi-calculator"></i> Cari Ay Maaş Hesablanması</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="salary-calculation">
+                                    <div class="salary-row">
+                                        <span>Əsas Maaş:</span>
+                                        <strong id="baseSalary">0 ₼</strong>
+                                    </div>
+                                    <div class="salary-row text-success">
+                                        <span>Bonus:</span>
+                                        <strong>+ <span id="bonusAmount">0</span> ₼</strong>
+                                    </div>
+                                    <div class="salary-row text-danger">
+                                        <span>Cərimə:</span>
+                                        <strong>- <span id="penaltyAmount">0</span> ₼</strong>
+                                    </div>
+                                    <div class="salary-row total">
+                                        <span>Yekun Maaş:</span>
+                                        <strong id="totalSalary">0 ₼</strong>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Recent Penalties -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="bi bi-exclamation-triangle"></i> Son Cərimələrim</h3>
+                            </div>
+                            <div class="card-body">
+                                <div id="recentPenalties">
+                                    <div class="empty-state">
+                                        <i class="bi bi-check-circle"></i>
+                                        <p>Cərimə qeydi yoxdur</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Column -->
+                    <div>
+                        <!-- Attendance Summary -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="bi bi-calendar-week"></i> Davamiyyət (Bu ay)</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="attendance-summary" id="attendanceSummary">
+                                    <div class="attendance-item">
+                                        <span class="attendance-label">
+                                            <i class="bi bi-check-circle text-success"></i>
+                                            İştirak
+                                        </span>
+                                        <span class="attendance-value" id="presentDays">0</span>
+                                    </div>
+                                    <div class="attendance-item">
+                                        <span class="attendance-label">
+                                            <i class="bi bi-clock text-warning"></i>
+                                            Gecikmə
+                                        </span>
+                                        <span class="attendance-value" id="lateDays">0</span>
+                                    </div>
+                                    <div class="attendance-item">
+                                        <span class="attendance-label">
+                                            <i class="bi bi-x-circle text-danger"></i>
+                                            Qayıb
+                                        </span>
+                                        <span class="attendance-value" id="absentDays">0</span>
+                                    </div>
+                                    <div class="attendance-item">
+                                        <span class="attendance-label">
+                                            <i class="bi bi-umbrella text-info"></i>
+                                            İznlə
+                                        </span>
+                                        <span class="attendance-value" id="excusedDays">0</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- My Tasks -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="bi bi-list-task"></i> Tapşırıqlarım</h3>
+                                <a href="worker-tasks.html" class="btn btn-sm btn-primary">Hamısı</a>
+                            </div>
+                            <div class="card-body">
+                                <div id="myTasks">
+                                    <div class="empty-state">
+                                        <i class="bi bi-inbox"></i>
+                                        <p>Tapşırıq yoxdur</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Quick Actions -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3><i class="bi bi-lightning"></i> Sürətli Əməliyyatlar</h3>
+                            </div>
+                            <div class="card-body">
+                                <div class="list-group">
+                                    <a href="worker-permissions.html" class="list-group-item">
+                                        <div>
+                                            <strong><i class="bi bi-plus-circle"></i> İcazə istə</strong>
+                                        </div>
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                    <a href="worker-shift-change.html" class="list-group-item">
+                                        <div>
+                                            <strong><i class="bi bi-arrow-left-right"></i> Növbə dəyişmə istə</strong>
+                                        </div>
+                                        <i class="bi bi-chevron-right"></i>
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Səs ilə işə gəliş təsdiqi -->
+    <div id="voiceCheckinModal" class="voice-modal-overlay" role="dialog" aria-modal="true" aria-labelledby="voiceModalTitle" hidden>
+        <div class="voice-modal card">
+            <div class="card-body">
+                <h3 id="voiceModalTitle" style="margin-top:0;"><i class="bi bi-mic"></i> Səs təsdiqi</h3>
+                <p style="color:var(--gray);margin-bottom:8px;">İşdə olduğunuzu təsdiqləmək üçün aşağıdakı cümleni <strong>səsli</strong> təkrarlayın.</p>
+                <blockquote id="voicePhraseDisplay" class="voice-phrase-block"></blockquote>
+                <p id="voiceStatus" class="voice-status-line" aria-live="polite"></p>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;">
+                    <button type="button" class="btn btn-success" id="voiceListenBtn"><i class="bi bi-mic-fill"></i> Dinlə və təsdiqlə</button>
+                    <button type="button" class="btn btn-outline-secondary" id="voiceCancelBtn">Bağla</button>
+                </div>
+                <small id="voiceHints" class="voice-hints"></small>
+            </div>
+        </div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="worker-shell.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script src="worker-voice-checkin.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (!currentUser) {
+            window.location.href = 'login.html';
+        } else {
+            const land = userRoleLanding(currentUser);
+            if (land === 'admin') window.location.href = 'dashboard.html';
+            else if (land === 'seller') window.location.href = 'seller-dashboard.html';
+        }
+
+        // Update user info
+        if (currentUser) {
+            const un = document.getElementById('userName');
+            const up = document.getElementById('userPosition');
+            const ua = document.getElementById('userAvatar');
+            if (un) un.textContent = currentUser.name;
+            if (up) up.textContent = currentUser.position || '';
+            document.getElementById('welcomeName').textContent = currentUser.name;
+            if (ua) ua.textContent = currentUser.name.charAt(0).toUpperCase();
+            document.getElementById('welcomeAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        // Set current date
+        const today = new Date();
+        document.getElementById('currentDate').textContent = today.toLocaleDateString('az-AZ', {
+            weekday: 'long',
+            year: 'numeric',
+            month: 'long',
+            day: 'numeric'
+        });
+
+        // Load worker dashboard data
+        function loadWorkerDashboard() {
+            if (!currentUser) return;
+
+            const workerId = currentUser.id;
+            
+            // Get data
+            const performance = getPerformance().filter(p => p.workerId === workerId);
+            const salaries = getSalaries().filter(s => s.workerId === workerId);
+            const penalties = getPenalties().filter(p => p.workerId === workerId);
+            const tasks = getTasks().filter(t => t.assignedTo === workerId);
+
+            // Update stats
+            document.getElementById('todaySalary').textContent = formatCurrency(currentUser.dailySalary || 0);
+            
+            const totalBonus = salaries.reduce((sum, s) => sum + (s.bonus || 0), 0);
+            const totalPenalty = penalties.reduce((sum, p) => sum + (p.amount || 0), 0);
+            
+            document.getElementById('totalBonus').textContent = formatCurrency(totalBonus);
+            document.getElementById('totalPenalty').textContent = formatCurrency(totalPenalty);
+
+            // Calculate work days
+            const currentMonth = new Date().getMonth() + 1;
+            const currentYear = new Date().getFullYear();
+            const monthPerformance = performance.filter(p => {
+                const pDate = new Date(p.date);
+                return pDate.getMonth() + 1 === currentMonth && pDate.getFullYear() === currentYear;
+            });
+            
+            const workDays = monthPerformance.filter(p => p.status === 'present' || p.status === 'late').length;
+            document.getElementById('workDays').textContent = workDays;
+
+            // Salary calculation
+            const baseSalary = (currentUser.dailySalary || 0) * workDays;
+            const currentMonthSalary = salaries.find(s => s.month === currentMonth && s.year === currentYear);
+            
+            document.getElementById('baseSalary').textContent = formatCurrency(baseSalary);
+            document.getElementById('bonusAmount').textContent = currentMonthSalary?.bonus || 0;
+            document.getElementById('penaltyAmount').textContent = currentMonthSalary?.penalty || 0;
+            document.getElementById('totalSalary').textContent = formatCurrency(
+                baseSalary + (currentMonthSalary?.bonus || 0) - (currentMonthSalary?.penalty || 0)
+            );
+
+            // Attendance summary
+            document.getElementById('presentDays').textContent = monthPerformance.filter(p => p.status === 'present').length;
+            document.getElementById('lateDays').textContent = monthPerformance.filter(p => p.status === 'late').length;
+            document.getElementById('absentDays').textContent = monthPerformance.filter(p => p.status === 'absent').length;
+            document.getElementById('excusedDays').textContent = monthPerformance.filter(p => p.status === 'excused').length;
+
+            // Recent penalties
+            loadRecentPenalties(penalties);
+
+            // My tasks
+            loadMyTasks(tasks);
+        }
+
+        // Load recent penalties
+        function loadRecentPenalties(penalties) {
+            const container = document.getElementById('recentPenalties');
+            const recentPenalties = penalties.slice(-5).reverse();
+
+            if (recentPenalties.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-check-circle"></i>
+                        <p>Cərimə qeydi yoxdur</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="table-container">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>Tarix</th>
+                                <th>Məbləğ</th>
+                                <th>Səbəb</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${recentPenalties.map(p => `
+                                <tr>
+                                    <td>${formatDate(p.date)}</td>
+                                    <td class="text-danger">${formatCurrency(p.amount)}</td>
+                                    <td>${p.reason}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        }
+
+        // Load my tasks
+        function loadMyTasks(tasks) {
+            const container = document.getElementById('myTasks');
+            const pendingTasks = tasks.filter(t => t.status !== 'completed').slice(0, 5);
+
+            if (pendingTasks.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>Tapşırıq yoxdur</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="list-group">
+                    ${pendingTasks.map(t => `
+                        <div class="list-group-item">
+                            <div>
+                                <strong>${t.title}</strong>
+                                <small class="badge badge-${t.status === 'pending' ? 'warning' : 'info'}">
+                                    ${t.status === 'pending' ? 'Gözləyir' : 'İcrada'}
+                                </small>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+        }
+
+        let voiceListenCtl = null;
+
+        function attendanceRecordDay(d) {
+            if (d == null) return '';
+            const s = typeof d === 'string' ? d : String(d);
+            return s.length >= 10 ? s.slice(0, 10) : s;
+        }
+
+        function resetCheckInButtonUI() {
+            const checkInBtn = document.getElementById('checkInBtn');
+            checkInBtn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> İşə Gəldim';
+            checkInBtn.disabled = false;
+            checkInBtn.classList.remove('btn-warning');
+            checkInBtn.classList.add('btn-success');
+        }
+
+        /** Backend və ya köhnə localStorage vəziyyətinə görə düymələri yeniləyir */
+        async function checkTodayStatus() {
+            const today = new Date().toISOString().split('T')[0];
+            const checkInBtn = document.getElementById('checkInBtn');
+            const checkOutBtn = document.getElementById('checkOutBtn');
+
+            checkInBtn.style.display = 'inline-flex';
+            checkOutBtn.style.display = 'none';
+            resetCheckInButtonUI();
+
+            const apiRes = await attendanceAPI.getMyRecords();
+            if (apiRes.success && Array.isArray(apiRes.attendance)) {
+                const rec = apiRes.attendance.find((a) => attendanceRecordDay(a.date) === today);
+                if (rec && rec.checkIn && rec.checkIn.time) {
+                    if (!rec.checkOut || !rec.checkOut.time) {
+                        checkInBtn.style.display = 'none';
+                        checkOutBtn.style.display = 'inline-flex';
+                    } else {
+                        checkInBtn.style.display = 'none';
+                        checkOutBtn.style.display = 'none';
+                    }
+                    return;
+                }
+            }
+
+            const pending = JSON.parse(localStorage.getItem('pendingAttendance') || '[]');
+            const attendance = JSON.parse(localStorage.getItem('attendance') || '[]');
+            const pendingRecord = pending.find((p) => p.workerId === currentUser.id && p.date === today);
+            const approvedRecord = attendance.find(
+                (a) =>
+                    a.workerId === currentUser.id &&
+                    a.date === today &&
+                    (a.status === 'approved' || a.status === 'present')
+            );
+
+            if (approvedRecord) {
+                if (!approvedRecord.checkOut) {
+                    checkInBtn.style.display = 'none';
+                    checkOutBtn.style.display = 'inline-flex';
+                } else {
+                    checkInBtn.style.display = 'none';
+                    checkOutBtn.style.display = 'none';
+                }
+            } else if (pendingRecord) {
+                checkInBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Təsdiq Gözləyir';
+                checkInBtn.disabled = true;
+                checkInBtn.classList.remove('btn-success');
+                checkInBtn.classList.add('btn-warning');
+                checkOutBtn.style.display = 'none';
+            }
+        }
+
+        function closeVoiceCheckinModal() {
+            if (voiceListenCtl) {
+                voiceListenCtl.stop();
+                voiceListenCtl = null;
+            }
+            const overlay = document.getElementById('voiceCheckinModal');
+            overlay.hidden = true;
+            overlay.style.display = 'none';
+            document.getElementById('voiceListenBtn').disabled = false;
+        }
+
+        function openVoiceCheckinModal(phrasePayload) {
+            document.getElementById('voicePhraseDisplay').textContent = phrasePayload.phrase || '';
+            document.getElementById('voiceStatus').textContent = '';
+            const hintsEl = document.getElementById('voiceHints');
+            hintsEl.textContent = Array.isArray(phrasePayload.hints)
+                ? phrasePayload.hints.join(' · ')
+                : '';
+            const overlay = document.getElementById('voiceCheckinModal');
+            overlay.hidden = false;
+            overlay.style.display = 'flex';
+        }
+
+        function legacyCheckInLocalPending() {
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const checkInTime = now.toTimeString().slice(0, 5);
+            let pending = JSON.parse(localStorage.getItem('pendingAttendance') || '[]');
+            const existing = pending.find((p) => p.workerId === currentUser.id && p.date === today);
+            if (existing) {
+                showNotification('Bugün üçün artıq gözləyən giriş qeydiniz var', 'warning');
+                return;
+            }
+            pending.push({
+                id: Date.now(),
+                workerId: currentUser.id,
+                date: today,
+                checkIn: checkInTime,
+                checkOut: null,
+                status: 'pending',
+                createdAt: now.toISOString()
+            });
+            localStorage.setItem('pendingAttendance', JSON.stringify(pending));
+            const checkInBtn = document.getElementById('checkInBtn');
+            checkInBtn.innerHTML = '<i class="bi bi-hourglass-split"></i> Təsdiq Gözləyir';
+            checkInBtn.disabled = true;
+            checkInBtn.classList.remove('btn-success');
+            checkInBtn.classList.add('btn-warning');
+            showNotification('İşə gəliş qeydi saxlanıldı (offline). Server aktiv olanda səs təsdiqi tövsiyə olunur.', 'warning');
+        }
+
+        /** İşə gəliş: əvvəlcə günlük ifadəni götürür, sonra mikrofonla təsdiq */
+        async function checkIn() {
+            if (!currentUser) return;
+
+            const phraseRes = await attendanceAPI.getVoicePhrase();
+            if (!phraseRes.success) {
+                showNotification(
+                    (phraseRes.message || 'Server əlçatmaz') +
+                        ' Köhnə rejimdə qeyd saxlanılır.',
+                    'warning'
+                );
+                legacyCheckInLocalPending();
+                checkTodayStatus();
+                return;
+            }
+
+            if (!window.WorkerVoiceCheckin || !WorkerVoiceCheckin.isSupported()) {
+                showNotification(
+                    'Bu brauzerdə Web Speech API yoxdur. Chrome və ya Edge istifadə edin (HTTPS və ya localhost).',
+                    'warning'
+                );
+                return;
+            }
+
+            openVoiceCheckinModal(phraseRes);
+
+            const listenBtn = document.getElementById('voiceListenBtn');
+            const statusEl = document.getElementById('voiceStatus');
+
+            listenBtn.onclick = () => {
+                if (voiceListenCtl) {
+                    voiceListenCtl.stop();
+                    voiceListenCtl = null;
+                }
+                statusEl.textContent = 'Dinləyirik… mikrofonunuza danışın.';
+                listenBtn.disabled = true;
+
+                voiceListenCtl = WorkerVoiceCheckin.startListening({
+                    lang: 'az-AZ',
+                    onInterim: (t) => {
+                        if (t) statusEl.textContent = 'Eşidilir: ' + t;
+                    },
+                    onFinal: async (t) => {
+                        voiceListenCtl = null;
+                        if (!t || t.length < 4) {
+                            statusEl.textContent = 'Mətn çox qısadır. Yenidən cəhd edin.';
+                            listenBtn.disabled = false;
+                            return;
+                        }
+                        statusEl.textContent = 'Serverə göndərilir…';
+                        const res = await attendanceAPI.checkIn({
+                            method: 'voice',
+                            voiceTranscript: t
+                        });
+                        listenBtn.disabled = false;
+                        if (res.success) {
+                            showNotification(res.message || 'İşə gəliş qeydə alındı', 'success');
+                            closeVoiceCheckinModal();
+                            await checkTodayStatus();
+                        } else {
+                            statusEl.textContent = res.message || 'Uyğunluq alınmadı';
+                            showNotification(res.message || 'Təsdiq alınmadı', 'warning');
+                        }
+                    },
+                    onError: (msg) => {
+                        voiceListenCtl = null;
+                        statusEl.textContent = msg;
+                        listenBtn.disabled = false;
+                    }
+                });
+            };
+
+            document.getElementById('voiceCancelBtn').onclick = () => closeVoiceCheckinModal();
+        }
+
+        async function checkOut() {
+            const res = await attendanceAPI.checkOut({});
+            if (res.success) {
+                document.getElementById('checkOutBtn').style.display = 'none';
+                showNotification(res.message || 'İşdən çıxışınız qeyd edildi', 'success');
+                await checkTodayStatus();
+                return;
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            const now = new Date();
+            const checkOutTime = now.toTimeString().slice(0, 5);
+            let attendance = JSON.parse(localStorage.getItem('attendance') || '[]');
+            const record = attendance.find((a) => a.workerId === currentUser.id && a.date === today);
+            if (record) {
+                record.checkOut = checkOutTime;
+                localStorage.setItem('attendance', JSON.stringify(attendance));
+                document.getElementById('checkOutBtn').style.display = 'none';
+                showNotification('İşdən çıxışınız qeyd edildi (yerli nüsxə)', 'success');
+            } else {
+                showNotification(res.message || 'Çıxış qeyd edilə bilmədi', 'warning');
+            }
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.style.cssText = 'position: fixed; top: 20px; right: 20px; background: white; padding: 16px 24px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.15); z-index: 9999; display: flex; align-items: center; gap: 12px; animation: slideIn 0.3s ease;';
+            
+            const icon = type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : 'info-circle';
+            const color = type === 'success' ? '#28a745' : type === 'warning' ? '#ffc107' : '#17a2b8';
+            
+            notification.innerHTML = `
+                <i class="bi bi-${icon}" style="color: ${color}; font-size: 24px;"></i>
+                <span style="font-weight: 500;">${message}</span>
+            `;
+            
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.style.animation = 'slideOut 0.3s ease';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            loadWorkerDashboard();
+            checkTodayStatus().catch(console.error);
+            document.getElementById('voiceCheckinModal').addEventListener('click', (e) => {
+                if (e.target.id === 'voiceCheckinModal') closeVoiceCheckinModal();
+            });
+        });
+    </script>
+    
+    <style>
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        @keyframes slideOut {
+            from { transform: translateX(0); opacity: 1; }
+            to { transform: translateX(100%); opacity: 0; }
+        }
+        .voice-modal-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.45);
+            z-index: 10000;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+        .voice-modal {
+            max-width: 440px;
+            width: 100%;
+            box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
+        }
+        .voice-phrase-block {
+            margin: 12px 0;
+            padding: 14px 16px;
+            border-left: 4px solid var(--primary, #0d6efd);
+            background: rgba(13, 110, 253, 0.06);
+            font-size: 1.15rem;
+            font-weight: 600;
+        }
+        .voice-status-line {
+            min-height: 1.5em;
+            color: var(--gray);
+            font-size: 0.95rem;
+        }
+        .voice-hints {
+            display: block;
+            margin-top: 12px;
+            color: var(--gray);
+        }
+    </style>
+</body>
+</html>

@@ -1,0 +1,329 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bildirişlər - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Bildirişlər</h1><p>Sistem bildirişləri və elanlar</p></div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openModal('addNotificationModal')">
+                        <i class="bi bi-plus"></i> Yeni Bildiriş
+                    </button>
+                    <button class="btn btn-secondary" onclick="markAllRead()">
+                        <i class="bi bi-check-all"></i> Hamısını Oxu
+                    </button>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-bell"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi</h3>
+                            <p class="stat-value" id="totalCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-bell-fill"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Oxunmamış</h3>
+                            <p class="stat-value" id="unreadCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Oxunmuş</h3>
+                            <p class="stat-value" id="readCount">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon purple">
+                            <i class="bi bi-megaphone"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Elanlar</h3>
+                            <p class="stat-value" id="announcementCount">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tabs -->
+                <div class="tabs">
+                    <button class="tab-btn active" onclick="filterNotifications('all')">Hamısı</button>
+                    <button class="tab-btn" onclick="filterNotifications('unread')">Oxunmamış</button>
+                    <button class="tab-btn" onclick="filterNotifications('announcement')">Elanlar</button>
+                    <button class="tab-btn" onclick="filterNotifications('system')">Sistem</button>
+                </div>
+
+                <!-- Notifications List -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-ul"></i> Bildirişlər</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="notificationsList">
+                            <!-- Notifications will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Notification Modal -->
+    <div class="modal" id="addNotificationModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-megaphone"></i> Yeni Bildiriş</h3>
+                <button class="modal-close" onclick="closeModal('addNotificationModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addNotificationForm">
+                    <div class="form-group">
+                        <label>Başlıq *</label>
+                        <input type="text" name="title" class="form-control" placeholder="Bildiriş başlığı" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Məzmun *</label>
+                        <textarea name="message" class="form-control" rows="4" placeholder="Bildiriş məzmunu..." required></textarea>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tip</label>
+                            <select name="type" class="form-control">
+                                <option value="announcement">Elan</option>
+                                <option value="info">Məlumat</option>
+                                <option value="warning">Xəbərdarlıq</option>
+                                <option value="urgent">Təcili</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Kimə</label>
+                            <select name="target" class="form-control">
+                                <option value="all">Hamısı</option>
+                                <option value="workers">Yalnız İşçilər</option>
+                                <option value="sellers">Yalnız Satıcılar</option>
+                            </select>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addNotificationModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="sendNotification()">Göndər</button>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        // Initialize notifications
+        function initNotifications() {
+            if (!localStorage.getItem('notifications')) {
+                localStorage.setItem('notifications', JSON.stringify([]));
+            }
+        }
+
+        function getNotifications() {
+            return JSON.parse(localStorage.getItem('notifications') || '[]');
+        }
+
+        function saveNotifications(data) {
+            localStorage.setItem('notifications', JSON.stringify(data));
+        }
+
+        // Load stats
+        function loadStats() {
+            const notifications = getNotifications();
+            const unread = notifications.filter(n => !n.read).length;
+            const read = notifications.filter(n => n.read).length;
+            const announcements = notifications.filter(n => n.type === 'announcement').length;
+
+            document.getElementById('totalCount').textContent = notifications.length;
+            document.getElementById('unreadCount').textContent = unread;
+            document.getElementById('readCount').textContent = read;
+            document.getElementById('announcementCount').textContent = announcements;
+        }
+
+        // Current filter
+        let currentFilter = 'all';
+
+        // Load notifications
+        function loadNotifications() {
+            const notifications = getNotifications();
+            const container = document.getElementById('notificationsList');
+
+            let filtered = notifications;
+            if (currentFilter === 'unread') {
+                filtered = notifications.filter(n => !n.read);
+            } else if (currentFilter === 'announcement') {
+                filtered = notifications.filter(n => n.type === 'announcement');
+            } else if (currentFilter === 'system') {
+                filtered = notifications.filter(n => n.type === 'system');
+            }
+
+            if (filtered.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-bell-slash"></i>
+                        <p>Bildiriş yoxdur</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const typeIcons = {
+                'announcement': 'megaphone',
+                'info': 'info-circle',
+                'warning': 'exclamation-triangle',
+                'urgent': 'exclamation-octagon',
+                'system': 'gear'
+            };
+
+            const typeColors = {
+                'announcement': '#8A2BE2',
+                'info': '#17a2b8',
+                'warning': '#ffc107',
+                'urgent': '#dc3545',
+                'system': '#6c757d'
+            };
+
+            container.innerHTML = filtered.sort((a, b) => new Date(b.date) - new Date(a.date)).map(n => `
+                <div class="list-group-item ${n.read ? '' : 'unread'}" style="${n.read ? '' : 'background: rgba(255,107,0,0.05); border-left: 3px solid var(--primary);'}">
+                    <div style="display: flex; align-items: flex-start; gap: 16px;">
+                        <div style="width: 48px; height: 48px; border-radius: 50%; background: ${typeColors[n.type]}20; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <i class="bi bi-${typeIcons[n.type]}" style="color: ${typeColors[n.type]}; font-size: 24px;"></i>
+                        </div>
+                        <div style="flex: 1;">
+                            <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 4px;">
+                                <h4 style="margin: 0; ${n.read ? 'font-weight: 500;' : 'font-weight: 700;'}">${n.title}</h4>
+                                <small style="color: var(--gray);">${formatDate(n.date)}</small>
+                            </div>
+                            <p style="margin: 0; color: var(--gray); line-height: 1.5;">${n.message}</p>
+                            <div style="margin-top: 12px; display: flex; gap: 8px;">
+                                ${!n.read ? `<button class="btn btn-sm btn-primary" onclick="markRead(${n.id})"><i class="bi bi-check"></i> Oxundu</button>` : ''}
+                                <button class="btn btn-sm btn-secondary" onclick="deleteNotification(${n.id})"><i class="bi bi-trash"></i> Sil</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        // Filter notifications
+        function filterNotifications(filter) {
+            currentFilter = filter;
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadNotifications();
+        }
+
+        // Send notification
+        function sendNotification() {
+            const form = document.getElementById('addNotificationForm');
+            const formData = new FormData(form);
+
+            const notifications = getNotifications();
+            notifications.push({
+                id: Date.now(),
+                title: formData.get('title'),
+                message: formData.get('message'),
+                type: formData.get('type'),
+                target: formData.get('target'),
+                date: new Date().toISOString(),
+                read: false,
+                createdBy: currentUser.id
+            });
+
+            saveNotifications(notifications);
+            closeModal('addNotificationModal');
+            form.reset();
+            loadNotifications();
+            loadStats();
+            showAlert('Bildiriş göndərildi', 'success');
+        }
+
+        // Mark as read
+        function markRead(id) {
+            let notifications = getNotifications();
+            const idx = notifications.findIndex(n => n.id === id);
+            if (idx !== -1) {
+                notifications[idx].read = true;
+                notifications[idx].readAt = new Date().toISOString();
+                saveNotifications(notifications);
+                loadNotifications();
+                loadStats();
+            }
+        }
+
+        // Mark all as read
+        function markAllRead() {
+            let notifications = getNotifications();
+            notifications.forEach(n => {
+                if (!n.read) {
+                    n.read = true;
+                    n.readAt = new Date().toISOString();
+                }
+            });
+            saveNotifications(notifications);
+            loadNotifications();
+            loadStats();
+            showAlert('Bütün bildirişlər oxundu', 'success');
+        }
+
+        // Delete notification
+        function deleteNotification(id) {
+            if (!confirm('Bu bildirişi silmək istədiyinizə əminsiniz?')) return;
+            let notifications = getNotifications();
+            notifications = notifications.filter(n => n.id !== id);
+            saveNotifications(notifications);
+            loadNotifications();
+            loadStats();
+            showAlert('Bildiriş silindi', 'success');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : 'exclamation-circle'}"></i> ${message}`;
+            alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initNotifications();
+            loadNotifications();
+            loadStats();
+        });
+    </script>
+</body>
+</html>

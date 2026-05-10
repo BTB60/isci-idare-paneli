@@ -1,0 +1,234 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Maaşlar - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Maaşlar</h1><p>Maaş hesablanması və idarəetmə</p></div>
+                <div class="topbar-right">
+                    <div class="search-box"><i class="bi bi-search"></i><input type="text" placeholder="Axtarış..."></div>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="filter-section">
+                    <div class="filter-form">
+                        <div class="form-group"><label>İşçi</label><select id="workerFilter" class="form-control"><option value="">Hamısı</option></select></div>
+                        <div class="form-group"><label>Ay</label><select id="monthFilter" class="form-control"></select></div>
+                        <div class="form-group"><label>İl</label><select id="yearFilter" class="form-control"><option value="2024">2024</option><option value="2025">2025</option></select></div>
+                        <button class="btn btn-primary" onclick="calculateSalaries()"><i class="bi bi-calculator"></i>Maaş Hesabla</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3><i class="bi bi-cash-stack"></i> Maaş Siyahısı</h3><button class="btn btn-sm btn-secondary" onclick="exportSalaries()"><i class="bi bi-download"></i>Export</button></div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table" id="salaryTable">
+                                <thead>
+                                    <tr><th>İşçi</th><th>İş Günü</th><th>Ödənişli İcazə</th><th>Günlük Maaş</th><th>Əsas Maaş</th><th>Bonus</th><th>Cərimə</th><th>Kəsinti</th><th>Yekun</th><th>Əməliyyatlar</th></tr>
+                                </thead>
+                                <tbody id="salaryTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="editSalaryModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Maaş Redaktə</h3><button class="modal-close" onclick="closeModal('editSalaryModal')"><i class="bi bi-x-lg"></i></button></div>
+            <div class="modal-body">
+                <form id="editSalaryForm"><input type="hidden" name="id">
+                    <div class="form-row">
+                        <div class="form-group"><label>Bonus (₼)</label><input type="number" name="bonus" class="form-control" min="0" step="0.01"></div>
+                        <div class="form-group"><label>Cərimə (₼)</label><input type="number" name="penalty" class="form-control" min="0" step="0.01"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('editSalaryModal')">Ləğv et</button><button class="btn btn-primary" onclick="updateSalary()">Yadda saxla</button></div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        const months = ['Yanvar','Fevral','Mart','Aprel','May','İyun','İyul','Avqust','Sentyabr','Oktyabr','Noyabr','Dekabr'];
+        
+        function initFilters() {
+            const monthSelect = document.getElementById('monthFilter');
+            months.forEach((m, i) => monthSelect.innerHTML += `<option value="${i+1}" ${i === new Date().getMonth() ? 'selected' : ''}>${m}</option>`);
+            
+            const workers = getWorkers();
+            document.getElementById('workerFilter').innerHTML += workers.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+        }
+
+        function loadSalaries() {
+            const workers = getWorkers();
+            const salaries = getSalaries();
+            const month = parseInt(document.getElementById('monthFilter').value);
+            const year = parseInt(document.getElementById('yearFilter').value);
+            const workerFilter = document.getElementById('workerFilter').value;
+            
+            let filtered = salaries.filter(s => s.month === month && s.year === year);
+            if (workerFilter) filtered = filtered.filter(s => s.workerId == workerFilter);
+            
+            const tbody = document.getElementById('salaryTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="10" class="empty-state"><i class="bi bi-inbox"></i><p>Məlumat yoxdur. Maaş hesablayın.</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(s => {
+                const worker = workers.find(w => w.id === s.workerId);
+                const leaveBadge = s.paidLeaveDays > 0 ? `<span class="badge badge-danger">${s.paidLeaveDays} gün</span>` : '-';
+                return `<tr>
+                    <td><strong>${worker?.name || 'Naməlum'}</strong></td>
+                    <td>${s.workDays}</td>
+                    <td>${leaveBadge}</td>
+                    <td>${formatCurrency(s.dailySalary)}</td>
+                    <td>${formatCurrency(s.baseSalary || s.workDays * s.dailySalary)}</td>
+                    <td class="text-success">+${formatCurrency(s.bonus || 0)}</td>
+                    <td class="text-danger">-${formatCurrency(s.penalty || 0)}</td>
+                    <td class="text-danger">-${formatCurrency(s.leaveDeduction || 0)}</td>
+                    <td><strong>${formatCurrency(s.total)}</strong></td>
+                    <td><div class="action-btns"><button class="btn-action btn-edit" onclick="editSalary('${s.id}')" title="Redaktə"><i class="bi bi-pencil"></i></button></div></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function calculateSalaries() {
+            const workers = getWorkers();
+            const month = parseInt(document.getElementById('monthFilter').value);
+            const year = parseInt(document.getElementById('yearFilter').value);
+            const performance = getPerformance();
+            const existingSalaries = getSalaries();
+            const permissions = getPermissions();
+            
+            workers.forEach(worker => {
+                const workDays = performance.filter(p => {
+                    const d = new Date(p.date);
+                    return p.workerId === worker.id && d.getMonth() + 1 === month && d.getFullYear() === year && (p.status === 'present' || p.status === 'late' || p.status === 'approved');
+                }).length;
+                
+                // Calculate paid leave days (excluding weekly free)
+                const paidLeaveDays = permissions.filter(p => {
+                    if (p.workerId !== worker.id || p.status !== 'approved' || p.type !== 'paid') return false;
+                    const start = new Date(p.startDate);
+                    const end = new Date(p.endDate);
+                    // Check if leave falls in current month
+                    return (start.getMonth() + 1 === month && start.getFullYear() === year) ||
+                           (end.getMonth() + 1 === month && end.getFullYear() === year);
+                }).reduce((sum, p) => {
+                    const start = new Date(p.startDate);
+                    const end = new Date(p.endDate);
+                    const startMonth = start.getMonth() + 1;
+                    const endMonth = end.getMonth() + 1;
+                    
+                    // Calculate days only in current month
+                    let days = 0;
+                    if (startMonth === month && endMonth === month) {
+                        days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+                    } else if (startMonth === month) {
+                        const monthEnd = new Date(year, month, 0);
+                        days = Math.ceil((monthEnd - start) / (1000 * 60 * 60 * 24)) + 1;
+                    } else if (endMonth === month) {
+                        const monthStart = new Date(year, month - 1, 1);
+                        days = Math.ceil((end - monthStart) / (1000 * 60 * 60 * 24)) + 1;
+                    }
+                    return sum + days;
+                }, 0);
+                
+                const penalties = getPenalties().filter(p => p.workerId === worker.id && p.status === 'active').reduce((sum, p) => sum + p.amount, 0);
+                
+                const dailySalary = worker.dailySalary || 0;
+                const baseSalary = workDays * dailySalary;
+                const leaveDeduction = paidLeaveDays * dailySalary;
+                const existing = existingSalaries.find(s => s.workerId === worker.id && s.month === month && s.year === year);
+                
+                const salaryData = {
+                    id: existing?.id || generateId(),
+                    workerId: worker.id,
+                    month, year, workDays,
+                    paidLeaveDays: paidLeaveDays,
+                    dailySalary: dailySalary,
+                    baseSalary: baseSalary,
+                    bonus: existing?.bonus || 0,
+                    penalty: penalties,
+                    leaveDeduction: leaveDeduction,
+                    total: baseSalary + (existing?.bonus || 0) - penalties - leaveDeduction
+                };
+                
+                if (existing) {
+                    const idx = existingSalaries.findIndex(s => s.id === existing.id);
+                    existingSalaries[idx] = salaryData;
+                } else {
+                    existingSalaries.push(salaryData);
+                }
+            });
+            
+            saveData('salaries', existingSalaries);
+            loadSalaries();
+            showAlert('Maaşlar hesablandı', 'success');
+        }
+
+        function editSalary(id) {
+            const salary = getSalaries().find(s => s.id === id);
+            if (!salary) return;
+            const form = document.getElementById('editSalaryForm');
+            form.elements['id'].value = salary.id;
+            form.elements['bonus'].value = salary.bonus || 0;
+            form.elements['penalty'].value = salary.penalty || 0;
+            openModal('editSalaryModal');
+        }
+
+        function updateSalary() {
+            const form = document.getElementById('editSalaryForm');
+            const id = form.elements['id'].value;
+            const bonus = parseFloat(form.elements['bonus'].value) || 0;
+            const penalty = parseFloat(form.elements['penalty'].value) || 0;
+            
+            let salaries = getSalaries();
+            const idx = salaries.findIndex(s => s.id === id);
+            if (idx !== -1) {
+                salaries[idx].bonus = bonus;
+                salaries[idx].penalty = penalty;
+                salaries[idx].total = (salaries[idx].workDays * salaries[idx].dailySalary) + bonus - penalty;
+                saveData('salaries', salaries);
+                closeModal('editSalaryModal');
+                loadSalaries();
+                showAlert('Maaş yeniləndi', 'success');
+            }
+        }
+
+        function exportSalaries() {
+            const salaries = getSalaries().map(s => ({...s, workerName: getWorkerById(s.workerId)?.name}));
+            exportToCSV(salaries, `maaslar_${new Date().toISOString().split('T')[0]}.csv`);
+        }
+
+        document.getElementById('monthFilter')?.addEventListener('change', loadSalaries);
+        document.getElementById('yearFilter')?.addEventListener('change', loadSalaries);
+        document.getElementById('workerFilter')?.addEventListener('change', loadSalaries);
+        document.addEventListener('DOMContentLoaded', () => { initFilters(); loadSalaries(); });
+    </script>
+</body>
+</html>

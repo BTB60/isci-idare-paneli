@@ -1,0 +1,370 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sənədlər - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Sənədlər</h1><p>İşçi sənədləri və müqavilələr</p></div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openModal('addDocumentModal')">
+                        <i class="bi bi-plus"></i> Sənəd Əlavə Et
+                    </button>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-file-earmark-text"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Sənəd</h3>
+                            <p class="stat-value" id="totalDocuments">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-file-earmark-check"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Aktiv Müqavilə</h3>
+                            <p class="stat-value" id="activeContracts">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-calendar-x"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bitmək Üzrə</h3>
+                            <p class="stat-value" id="expiringSoon">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon red">
+                            <i class="bi bi-exclamation-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bitmiş</h3>
+                            <p class="stat-value" id="expired">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Filters -->
+                <div class="filter-section">
+                    <div class="filter-form">
+                        <div class="form-group">
+                            <label>Tip</label>
+                            <select id="typeFilter" class="form-control">
+                                <option value="">Hamısı</option>
+                                <option value="contract">Müqavilə</option>
+                                <option value="id">Şəxsiyyət Vəsiqəsi</option>
+                                <option value="certificate">Sertifikat</option>
+                                <option value="medical">Tibbi Sənəd</option>
+                                <option value="other">Digər</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>İşçi</label>
+                            <select id="workerFilter" class="form-control">
+                                <option value="">Bütün işçilər</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Documents Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-folder"></i> Sənəd Arxivi</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Sənəd</th>
+                                        <th>İşçi</th>
+                                        <th>Tip</th>
+                                        <th>Tarix</th>
+                                        <th>Bitmə Tarixi</th>
+                                        <th>Status</th>
+                                        <th>Əməliyyatlar</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="documentsTableBody">
+                                    <tr><td colspan="7" class="text-center">Məlumat yüklənir...</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Add Document Modal -->
+    <div class="modal" id="addDocumentModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3><i class="bi bi-file-earmark-plus"></i> Sənəd Əlavə Et</h3>
+                <button class="modal-close" onclick="closeModal('addDocumentModal')"><i class="bi bi-x-lg"></i></button>
+            </div>
+            <div class="modal-body">
+                <form id="addDocumentForm">
+                    <div class="form-group">
+                        <label>İşçi *</label>
+                        <select name="workerId" class="form-control" required>
+                            <option value="">İşçi seçin</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Sənəd Adı *</label>
+                        <input type="text" name="name" class="form-control" placeholder="Məsələn: Əmək Müqaviləsi" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tip *</label>
+                            <select name="type" class="form-control" required>
+                                <option value="contract">Müqavilə</option>
+                                <option value="id">Şəxsiyyət Vəsiqəsi</option>
+                                <option value="certificate">Sertifikat</option>
+                                <option value="medical">Tibbi Sənəd</option>
+                                <option value="other">Digər</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Sənəd Nömrəsi</label>
+                            <input type="text" name="number" class="form-control" placeholder="Sənəd nömrəsi">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label>Tarix *</label>
+                            <input type="date" name="date" class="form-control" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Bitmə Tarixi</label>
+                            <input type="date" name="expiryDate" class="form-control">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label>Qeyd</label>
+                        <textarea name="notes" class="form-control" rows="2"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addDocumentModal')">Ləğv et</button>
+                <button class="btn btn-primary" onclick="saveDocument()">Yadda saxla</button>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        // Initialize documents data
+        function initDocuments() {
+            if (!localStorage.getItem('documents')) {
+                localStorage.setItem('documents', JSON.stringify([]));
+            }
+        }
+
+        function getDocuments() {
+            return JSON.parse(localStorage.getItem('documents') || '[]');
+        }
+
+        function saveDocuments(data) {
+            localStorage.setItem('documents', JSON.stringify(data));
+        }
+
+        // Load filters
+        function loadFilters() {
+            const workers = getWorkers();
+            const workerFilter = document.getElementById('workerFilter');
+            const workerSelect = document.querySelector('#addDocumentForm select[name="workerId"]');
+            
+            const options = workers.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+            workerFilter.innerHTML += options;
+            workerSelect.innerHTML += options;
+        }
+
+        // Load stats
+        function loadStats() {
+            const documents = getDocuments();
+            const today = new Date();
+            const thirtyDaysFromNow = new Date();
+            thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+            const contracts = documents.filter(d => d.type === 'contract');
+            const activeContracts = contracts.filter(d => !d.expiryDate || new Date(d.expiryDate) > today).length;
+            
+            const expiringSoon = documents.filter(d => {
+                if (!d.expiryDate) return false;
+                const expiry = new Date(d.expiryDate);
+                return expiry > today && expiry <= thirtyDaysFromNow;
+            }).length;
+
+            const expired = documents.filter(d => {
+                if (!d.expiryDate) return false;
+                return new Date(d.expiryDate) < today;
+            }).length;
+
+            document.getElementById('totalDocuments').textContent = documents.length;
+            document.getElementById('activeContracts').textContent = activeContracts;
+            document.getElementById('expiringSoon').textContent = expiringSoon;
+            document.getElementById('expired').textContent = expired;
+        }
+
+        // Load documents table
+        function loadDocuments() {
+            const documents = getDocuments();
+            const workers = getWorkers();
+            const typeFilter = document.getElementById('typeFilter').value;
+            const workerFilter = document.getElementById('workerFilter').value;
+
+            let filtered = documents;
+
+            if (typeFilter) {
+                filtered = filtered.filter(d => d.type === typeFilter);
+            }
+
+            if (workerFilter) {
+                filtered = filtered.filter(d => d.workerId === parseInt(workerFilter));
+            }
+
+            const tbody = document.getElementById('documentsTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Məlumat yoxdur</td></tr>';
+                return;
+            }
+
+            const typeLabels = {
+                'contract': 'Müqavilə',
+                'id': 'Şəxsiyyət Vəsiqəsi',
+                'certificate': 'Sertifikat',
+                'medical': 'Tibbi Sənəd',
+                'other': 'Digər'
+            };
+
+            const today = new Date();
+            const thirtyDaysFromNow = new Date();
+            thirtyDaysFromNow.setDate(today.getDate() + 30);
+
+            tbody.innerHTML = filtered.sort((a, b) => new Date(b.date) - new Date(a.date)).map(d => {
+                const worker = workers.find(w => w.id === d.workerId);
+                
+                let status = '<span class="badge badge-success">Aktiv</span>';
+                if (d.expiryDate) {
+                    const expiry = new Date(d.expiryDate);
+                    if (expiry < today) {
+                        status = '<span class="badge badge-danger">Bitmiş</span>';
+                    } else if (expiry <= thirtyDaysFromNow) {
+                        status = '<span class="badge badge-warning">Bitmək üzrə</span>';
+                    }
+                }
+
+                return `<tr>
+                    <td><strong>${d.name}</strong>${d.number ? `<br><small>${d.number}</small>` : ''}</td>
+                    <td>${worker?.name || 'Naməlum'}</td>
+                    <td>${typeLabels[d.type] || d.type}</td>
+                    <td>${formatDate(d.date)}</td>
+                    <td>${d.expiryDate ? formatDate(d.expiryDate) : '-'}</td>
+                    <td>${status}</td>
+                    <td>
+                        <div class="action-btns">
+                            <button class="btn-action btn-edit" onclick="editDocument(${d.id})" title="Redaktə"><i class="bi bi-pencil"></i></button>
+                            <button class="btn-action btn-delete" onclick="deleteDocument(${d.id})" title="Sil"><i class="bi bi-trash"></i></button>
+                        </div>
+                    </td>
+                </tr>`;
+            }).join('');
+        }
+
+        // Save document
+        function saveDocument() {
+            const form = document.getElementById('addDocumentForm');
+            const formData = new FormData(form);
+
+            const documents = getDocuments();
+            documents.push({
+                id: Date.now(),
+                workerId: parseInt(formData.get('workerId')),
+                name: formData.get('name'),
+                type: formData.get('type'),
+                number: formData.get('number'),
+                date: formData.get('date'),
+                expiryDate: formData.get('expiryDate'),
+                notes: formData.get('notes'),
+                createdAt: new Date().toISOString()
+            });
+
+            saveDocuments(documents);
+            closeModal('addDocumentModal');
+            form.reset();
+            loadDocuments();
+            loadStats();
+            showAlert('Sənəd əlavə edildi', 'success');
+        }
+
+        // Edit document
+        function editDocument(id) {
+            // For simplicity, just show alert - in real app would open edit modal
+            showAlert('Redaktə funksiyası əlavə ediləcək', 'info');
+        }
+
+        // Delete document
+        function deleteDocument(id) {
+            if (!confirm('Bu sənədi silmək istədiyinizə əminsiniz?')) return;
+            let documents = getDocuments();
+            documents = documents.filter(d => d.id !== id);
+            saveDocuments(documents);
+            loadDocuments();
+            loadStats();
+            showAlert('Sənəd silindi', 'success');
+        }
+
+        function showAlert(message, type) {
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = `<i class="bi bi-${type === 'success' ? 'check-circle' : type === 'info' ? 'info-circle' : 'exclamation-circle'}"></i> ${message}`;
+            alert.style.cssText = 'position: fixed; top: 20px; right: 20px; z-index: 9999; animation: slideIn 0.3s ease;';
+            document.body.appendChild(alert);
+            setTimeout(() => alert.remove(), 3000);
+        }
+
+        // Event listeners
+        document.getElementById('typeFilter')?.addEventListener('change', loadDocuments);
+        document.getElementById('workerFilter')?.addEventListener('change', loadDocuments);
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            initDocuments();
+            loadFilters();
+            loadDocuments();
+            loadStats();
+        });
+    </script>
+</body>
+</html>

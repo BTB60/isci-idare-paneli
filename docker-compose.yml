@@ -1,0 +1,14 @@
+# Yerində MongoDB (Docker Desktop işə salındıqdan sonra):
+#   docker compose up -d
+# Sonra backend: cd backend && npm run seed && npm start
+services:
+  mongo:
+    image: mongo:7
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_555_data:/data/db
+
+volumes:
+  mongo_555_data:

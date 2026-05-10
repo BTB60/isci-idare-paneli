@@ -1,0 +1,517 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Növbə Dəyişmə - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div>
+                    <h2>555 İnşaat</h2>
+                    <small>İşçi Paneli</small>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a href="worker-dashboard.html" class="nav-item">
+                    <i class="bi bi-speedometer2"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="worker-performance.html" class="nav-item">
+                    <i class="bi bi-graph-up"></i>
+                    <span>Performansım</span>
+                </a>
+                <a href="worker-tasks.html" class="nav-item">
+                    <i class="bi bi-list-task"></i>
+                    <span>Tapşırıqlarım</span>
+                </a>
+                <a href="worker-salary.html" class="nav-item">
+                    <i class="bi bi-cash-stack"></i>
+                    <span>Maaşım</span>
+                </a>
+                <a href="worker-permissions.html" class="nav-item">
+                    <i class="bi bi-calendar-check"></i>
+                    <span>İcazələrim</span>
+                </a>
+                <a href="worker-shift-change.html" class="nav-item active">
+                    <i class="bi bi-arrow-left-right"></i>
+                    <span>Növbə Dəyişmə</span>
+                </a>
+            </nav>
+
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Topbar -->
+            <header class="topbar">
+                <div class="topbar-left">
+                    <h1>Növbə Dəyişmə</h1>
+                    <p>İş günü dəyişmə sorğuları</p>
+                </div>
+                <div class="topbar-right">
+                    <button class="btn btn-primary" onclick="openRequestModal()">
+                        <i class="bi bi-plus"></i> Yeni Sorğu
+                    </button>
+                    <button class="btn-icon" id="themeToggle">
+                        <i class="bi bi-moon"></i>
+                    </button>
+                </div>
+            </header>
+
+            <!-- Page Content -->
+            <div class="page-content">
+                <!-- Shift Change Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-arrow-left-right"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Sorğu</h3>
+                            <p class="stat-value" id="totalRequests">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon warning">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Gözləyən</h3>
+                            <p class="stat-value" id="pendingRequests">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon info">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Qəbul Edilən</h3>
+                            <p class="stat-value" id="acceptedRequests">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-double"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Təsdiqlənən</h3>
+                            <p class="stat-value" id="approvedRequests">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Two Column Layout -->
+                <div class="dashboard-grid">
+                    <!-- My Requests -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-box-arrow-up"></i> Göndərdiyim Sorğular</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="myRequests">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox"></i>
+                                    <p>Sorğu yoxdur</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Incoming Requests -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3><i class="bi bi-box-arrow-in-down"></i> Gələn Sorğular</h3>
+                        </div>
+                        <div class="card-body">
+                            <div id="incomingRequests">
+                                <div class="empty-state">
+                                    <i class="bi bi-inbox"></i>
+                                    <p>Sorğu yoxdur</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- All Requests Table -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3><i class="bi bi-list-check"></i> Bütün Sorğular</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table">
+                                <thead>
+                                    <tr>
+                                        <th>Tarix</th>
+                                        <th>Sorğu Göndərən</th>
+                                        <th>Qarşı tərəf</th>
+                                        <th>Səbəb</th>
+                                        <th>İşçi Cavabı</th>
+                                        <th>Admin Cavabı</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="allRequests">
+                                    <!-- Dynamic content -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- New Shift Change Request Modal -->
+    <div class="modal" id="requestModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3><i class="bi bi-arrow-left-right"></i> Növbə Dəyişmə Sorğusu</h3>
+                    <button class="btn-close" onclick="closeModal('requestModal')">&times;</button>
+                </div>
+                <form id="shiftChangeForm" onsubmit="submitRequest(event)">
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label>Dəyişmək İstədiyiniz İşçi *</label>
+                            <select class="form-control" name="targetId" required>
+                                <option value="">İşçi seçin...</option>
+                                <!-- Dynamic options -->
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Dəyişmə Tarixi *</label>
+                            <input type="date" class="form-control" name="date" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Səbəb *</label>
+                            <textarea class="form-control" name="reason" rows="3" placeholder="Dəyişmə səbəbini qeyd edin..." required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" onclick="closeModal('requestModal')">Ləğv et</button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="bi bi-send"></i> Göndər
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Response Modal -->
+    <div class="modal" id="responseModal">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h3>Sorğuya Cavab Ver</h3>
+                    <button class="btn-close" onclick="closeModal('responseModal')">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p id="responseRequestInfo">Sorğu məlumatları...</p>
+                    <div class="form-group">
+                        <label>Qeyd (istəyə bağlı)</label>
+                        <textarea class="form-control" id="responseNote" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-danger" onclick="submitResponse('reject')">
+                        <i class="bi bi-x"></i> Rədd et
+                    </button>
+                    <button type="button" class="btn btn-success" onclick="submitResponse('accept')">
+                        <i class="bi bi-check"></i> Qəbul et
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="worker-shell.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Check authentication
+        const currentUser = checkAuth();
+        if (currentUser && userRoleLanding(currentUser) !== 'worker') {
+            window.location.href = 'dashboard.html';
+        }
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userPosition').textContent = currentUser.position;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        let currentResponseId = null;
+
+        // Load shift change requests
+        function loadRequests() {
+            if (!currentUser) return;
+
+            const shiftChanges = getShiftChanges();
+            const workers = getWorkers();
+
+            // My requests (sent by me)
+            const myRequests = shiftChanges.filter(s => s.requesterId === currentUser.id);
+            
+            // Incoming requests (target is me)
+            const incomingRequests = shiftChanges.filter(s => s.targetId === currentUser.id && s.status === 'pending');
+
+            // All requests involving me
+            const allMyRequests = shiftChanges.filter(s => 
+                s.requesterId === currentUser.id || s.targetId === currentUser.id
+            );
+
+            // Update stats
+            document.getElementById('totalRequests').textContent = myRequests.length;
+            document.getElementById('pendingRequests').textContent = myRequests.filter(s => s.status === 'pending').length;
+            document.getElementById('acceptedRequests').textContent = myRequests.filter(s => s.workerResponse === 'accepted').length;
+            document.getElementById('approvedRequests').textContent = myRequests.filter(s => s.status === 'approved').length;
+
+            // Render my requests
+            renderMyRequests(myRequests, workers);
+
+            // Render incoming requests
+            renderIncomingRequests(incomingRequests, workers);
+
+            // Render all requests table
+            renderAllRequests(allMyRequests, workers);
+        }
+
+        // Render my requests
+        function renderMyRequests(requests, workers) {
+            const container = document.getElementById('myRequests');
+            
+            if (requests.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>Sorğu yoxdur</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const statusBadges = {
+                'pending': '<span class="badge badge-warning">Gözləyir</span>',
+                'worker-accepted': '<span class="badge badge-info">İşçi Qəbul Etdi</span>',
+                'worker-rejected': '<span class="badge badge-danger">İşçi Rədd Etdi</span>',
+                'approved': '<span class="badge badge-success">Təsdiqləndi</span>',
+                'rejected': '<span class="badge badge-danger">Rədd Edildi</span>'
+            };
+
+            container.innerHTML = `
+                <div class="request-list">
+                    ${requests.slice(-5).reverse().map(r => {
+                        const target = workers.find(w => w.id === r.targetId);
+                        return `
+                            <div class="request-item">
+                                <div class="request-info">
+                                    <strong>${target ? target.name : 'Naməlum'}</strong>
+                                    <small>${formatDate(r.date)}</small>
+                                </div>
+                                <div>${statusBadges[r.status] || r.status}</div>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // Render incoming requests
+        function renderIncomingRequests(requests, workers) {
+            const container = document.getElementById('incomingRequests');
+            
+            if (requests.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <i class="bi bi-inbox"></i>
+                        <p>Sorğu yoxdur</p>
+                    </div>
+                `;
+                return;
+            }
+
+            container.innerHTML = `
+                <div class="request-list">
+                    ${requests.map(r => {
+                        const requester = workers.find(w => w.id === r.requesterId);
+                        return `
+                            <div class="request-item actionable">
+                                <div class="request-info">
+                                    <strong>${requester ? requester.name : 'Naməlum'}</strong>
+                                    <small>${formatDate(r.date)} - ${r.reason}</small>
+                                </div>
+                                <button class="btn btn-sm btn-primary" onclick="openResponseModal(${r.id})">
+                                    Cavab Ver
+                                </button>
+                            </div>
+                        `;
+                    }).join('')}
+                </div>
+            `;
+        }
+
+        // Render all requests table
+        function renderAllRequests(requests, workers) {
+            const tbody = document.getElementById('allRequests');
+            
+            if (requests.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Sorğu yoxdur</td></tr>';
+                return;
+            }
+
+            const statusBadges = {
+                'pending': '<span class="badge badge-warning">Gözləyir</span>',
+                'worker-accepted': '<span class="badge badge-info">İşçi Qəbul Etdi</span>',
+                'worker-rejected': '<span class="badge badge-danger">İşçi Rədd Etdi</span>',
+                'approved': '<span class="badge badge-success">Təsdiqləndi</span>',
+                'rejected': '<span class="badge badge-danger">Rədd Edildi</span>'
+            };
+
+            const responseBadges = {
+                'pending': '-',
+                'accepted': '<span class="badge badge-success">Qəbul</span>',
+                'rejected': '<span class="badge badge-danger">Rədd</span>'
+            };
+
+            tbody.innerHTML = requests.sort((a, b) => new Date(b.createdAt || b.date) - new Date(a.createdAt || a.date)).map(r => {
+                const requester = workers.find(w => w.id === r.requesterId);
+                const target = workers.find(w => w.id === r.targetId);
+                const isMyRequest = r.requesterId === currentUser.id;
+                
+                return `
+                    <tr>
+                        <td>${formatDate(r.date)}</td>
+                        <td>${requester ? requester.name : 'Naməlum'}</td>
+                        <td>${target ? target.name : 'Naməlum'}</td>
+                        <td>${r.reason}</td>
+                        <td>${responseBadges[r.workerResponse] || '-'}</td>
+                        <td>${responseBadges[r.adminResponse] || '-'}</td>
+                        <td>${statusBadges[r.status] || r.status}</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Open request modal
+        function openRequestModal() {
+            const workers = getWorkers().filter(w => w.id !== currentUser.id);
+            const select = document.querySelector('select[name="targetId"]');
+            
+            select.innerHTML = '<option value="">İşçi seçin...</option>' + 
+                workers.map(w => `<option value="${w.id}">${w.name} (${w.position})</option>`).join('');
+            
+            // Set min date to today
+            const today = new Date().toISOString().split('T')[0];
+            document.querySelector('input[name="date"]').min = today;
+            
+            openModal('requestModal');
+        }
+
+        // Submit request
+        function submitRequest(event) {
+            event.preventDefault();
+            
+            if (!currentUser) return;
+
+            const form = event.target;
+            const formData = new FormData(form);
+
+            const shiftChanges = getShiftChanges();
+            
+            const newRequest = {
+                id: Date.now(),
+                requesterId: currentUser.id,
+                targetId: parseInt(formData.get('targetId')),
+                date: formData.get('date'),
+                reason: formData.get('reason'),
+                status: 'pending',
+                workerResponse: 'pending',
+                adminResponse: 'pending',
+                createdAt: new Date().toISOString()
+            };
+
+            shiftChanges.push(newRequest);
+            saveData('shiftChanges', shiftChanges);
+
+            closeModal('requestModal');
+            form.reset();
+            loadRequests();
+            
+            showNotification('Sorğu göndərildi', 'success');
+        }
+
+        // Open response modal
+        function openResponseModal(requestId) {
+            currentResponseId = requestId;
+            const shiftChanges = getShiftChanges();
+            const workers = getWorkers();
+            const request = shiftChanges.find(s => s.id === requestId);
+            
+            if (request) {
+                const requester = workers.find(w => w.id === request.requesterId);
+                document.getElementById('responseRequestInfo').innerHTML = `
+                    <strong>${requester ? requester.name : 'Naməlum'}</strong> ilə 
+                    <strong>${formatDate(request.date)}</strong> tarixində növbə dəyişmə
+                `;
+                openModal('responseModal');
+            }
+        }
+
+        // Submit response
+        function submitResponse(response) {
+            if (!currentResponseId) return;
+
+            const shiftChanges = getShiftChanges();
+            const requestIndex = shiftChanges.findIndex(s => s.id === currentResponseId);
+            
+            if (requestIndex !== -1) {
+                shiftChanges[requestIndex].workerResponse = response;
+                shiftChanges[requestIndex].status = response === 'accept' ? 'worker-accepted' : 'worker-rejected';
+                shiftChanges[requestIndex].workerNote = document.getElementById('responseNote').value;
+                
+                saveData('shiftChanges', shiftChanges);
+                
+                closeModal('responseModal');
+                loadRequests();
+                
+                showNotification(response === 'accept' ? 'Sorğu qəbul edildi' : 'Sorğu rədd edildi', 
+                    response === 'accept' ? 'success' : 'info');
+            }
+            
+            currentResponseId = null;
+        }
+
+        // Show notification
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `notification notification-${type}`;
+            notification.innerHTML = `
+                <i class="bi bi-${type === 'success' ? 'check-circle' : 'info-circle'}"></i>
+                <span>${message}</span>
+            `;
+            document.body.appendChild(notification);
+            
+            setTimeout(() => {
+                notification.remove();
+            }, 3000);
+        }
+
+        // Load on page load
+        document.addEventListener('DOMContentLoaded', loadRequests);
+    </script>
+</body>
+</html>

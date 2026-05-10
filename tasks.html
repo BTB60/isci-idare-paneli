@@ -1,0 +1,161 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tapşırıqlar - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar" aria-label="Əsas menyu"></aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Tapşırıqlar</h1><p>Tapşırıq idarəetmə</p></div>
+                <div class="topbar-right">
+                    <div class="search-box"><i class="bi bi-search"></i><input type="text" placeholder="Axtarış..."></div>
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <div class="filter-section">
+                    <div class="filter-form">
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select id="statusFilter" class="form-control">
+                                <option value="">Hamısı</option>
+                                <option value="pending">Gözləyir</option>
+                                <option value="in-progress">İcrada</option>
+                                <option value="completed">Tamamlanıb</option>
+                            </select>
+                        </div>
+                        <button class="btn btn-primary" onclick="openModal('addTaskModal')"><i class="bi bi-plus-lg"></i>Yeni Tapşırıq</button>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header"><h3><i class="bi bi-list-task"></i> Tapşırıq Siyahısı</h3></div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="data-table" id="tasksTable">
+                                <thead>
+                                    <tr><th>ID</th><th>Başlıq</th><th>Təyin edildi</th><th>Prioritet</th><th>Status</th><th>Əməliyyatlar</th></tr>
+                                </thead>
+                                <tbody id="tasksTableBody"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <div class="modal" id="addTaskModal">
+        <div class="modal-content">
+            <div class="modal-header"><h3>Yeni Tapşırıq</h3><button class="modal-close" onclick="closeModal('addTaskModal')"><i class="bi bi-x-lg"></i></button></div>
+            <div class="modal-body">
+                <form id="addTaskForm">
+                    <div class="form-group"><label>Başlıq *</label><input type="text" name="title" class="form-control" required></div>
+                    <div class="form-group"><label>Təsvir</label><textarea name="description" class="form-control" rows="3"></textarea></div>
+                    <div class="form-row">
+                        <div class="form-group"><label>Təyin et *</label><select name="assignedTo" class="form-control" required></select></div>
+                        <div class="form-group"><label>Prioritet</label><select name="priority" class="form-control"><option value="low">Aşağı</option><option value="medium" selected>Orta</option><option value="high">Yüksək</option></select></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer"><button class="btn btn-secondary" onclick="closeModal('addTaskModal')">Ləğv et</button><button class="btn btn-primary" onclick="addTask()">Əlavə et</button></div>
+        </div>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="admin-shell.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (currentUser && currentUser.role !== 'admin') window.location.href = 'worker-dashboard.html';
+        if (currentUser) document.getElementById('userName').textContent = currentUser.name;
+
+        function loadTasks() {
+            const tasks = getTasks();
+            const workers = getWorkers();
+            const statusFilter = document.getElementById('statusFilter').value;
+            
+            let filtered = tasks;
+            if (statusFilter) filtered = filtered.filter(t => t.status === statusFilter);
+            
+            const tbody = document.getElementById('tasksTableBody');
+            if (filtered.length === 0) {
+                tbody.innerHTML = '<tr><td colspan="6" class="empty-state"><i class="bi bi-inbox"></i><p>Tapşırıq yoxdur</p></td></tr>';
+                return;
+            }
+
+            tbody.innerHTML = filtered.map(t => {
+                const worker = workers.find(w => w.id === t.assignedTo);
+                return `<tr>
+                    <td>${t.id}</td>
+                    <td><strong>${t.title}</strong><br><small>${t.description?.substring(0, 50)}...</small></td>
+                    <td>${worker?.name || 'Naməlum'}</td>
+                    <td><span class="badge badge-${t.priority === 'high' ? 'danger' : t.priority === 'medium' ? 'warning' : 'info'}">${t.priority === 'high' ? 'Yüksək' : t.priority === 'medium' ? 'Orta' : 'Aşağı'}</span></td>
+                    <td><span class="badge badge-${t.status === 'completed' ? 'success' : t.status === 'in-progress' ? 'info' : 'warning'}">${t.status === 'completed' ? 'Tamamlanıb' : t.status === 'in-progress' ? 'İcrada' : 'Gözləyir'}</span></td>
+                    <td><div class="action-btns"><button class="btn-action btn-edit" onclick="updateTaskStatus(${t.id}, 'in-progress')" title="Başlat"><i class="bi bi-play"></i></button><button class="btn-action btn-success" onclick="updateTaskStatus(${t.id}, 'completed')" title="Tamamla" style="background:rgba(40,167,69,0.1);color:var(--success)"><i class="bi bi-check-lg"></i></button><button class="btn-action btn-delete" onclick="deleteTask(${t.id})" title="Sil"><i class="bi bi-trash"></i></button></div></td>
+                </tr>`;
+            }).join('');
+        }
+
+        function loadWorkerSelect() {
+            const workers = getWorkers();
+            document.querySelector('select[name="assignedTo"]').innerHTML = '<option value="">İşçi seçin</option>' + workers.map(w => `<option value="${w.id}">${w.name}</option>`).join('');
+        }
+
+        function addTask() {
+            const form = document.getElementById('addTaskForm');
+            const formData = new FormData(form);
+            const tasks = getTasks();
+            
+            tasks.push({
+                id: tasks.length > 0 ? Math.max(...tasks.map(t => t.id)) + 1 : 1,
+                title: formData.get('title'),
+                description: formData.get('description'),
+                assignedTo: parseInt(formData.get('assignedTo')),
+                priority: formData.get('priority'),
+                status: 'pending',
+                createdAt: new Date().toISOString()
+            });
+            
+            saveData('tasks', tasks);
+            closeModal('addTaskModal');
+            form.reset();
+            loadTasks();
+            showAlert('Tapşırıq əlavə edildi', 'success');
+        }
+
+        function updateTaskStatus(id, status) {
+            let tasks = getTasks();
+            const index = tasks.findIndex(t => t.id === id);
+            if (index !== -1) {
+                tasks[index].status = status;
+                saveData('tasks', tasks);
+                loadTasks();
+                showAlert('Status yeniləndi', 'success');
+            }
+        }
+
+        function deleteTask(id) {
+            confirmAction('Bu tapşırığı silmək istədiyinizə əminsiniz?', () => {
+                let tasks = getTasks().filter(t => t.id !== id);
+                saveData('tasks', tasks);
+                loadTasks();
+                showAlert('Tapşırıq silindi', 'success');
+            });
+        }
+
+        document.getElementById('statusFilter')?.addEventListener('change', loadTasks);
+        document.addEventListener('DOMContentLoaded', () => { loadWorkerSelect(); loadTasks(); });
+    </script>
+</body>
+</html>

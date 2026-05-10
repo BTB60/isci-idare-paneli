@@ -1,0 +1,21 @@
+# Render Blueprint: tək Web Service — Node backend repo kökündəki HTML-i də verir.
+# MongoDB: Atlas URI tövsiyə olunur (Render diskdə Mongo saxlamır).
+# https://render.com/docs/blueprint-spec
+services:
+  - type: web
+    name: 555-insaat
+    runtime: node
+    region: frankfurt
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: JWT_SECRET
+        generateValue: true
+      - key: MONGODB_URI
+        sync: false
+      - key: CORS_ORIGINS
+        sync: false

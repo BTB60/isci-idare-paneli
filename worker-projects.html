@@ -1,0 +1,184 @@
+﻿<!DOCTYPE html>
+<html lang="az">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Layihələrim - 555 İnşaat</title>
+    <link rel="stylesheet" href="vendor/bootstrap-icons/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="admin-layout">
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <i class="bi bi-building"></i>
+                <div><h2>555 İnşaat</h2><small>İşçi Paneli</small></div>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="worker-dashboard.html" class="nav-item"><i class="bi bi-speedometer2"></i><span>Dashboard</span></a>
+                <a href="worker-performance.html" class="nav-item"><i class="bi bi-graph-up"></i><span>Performansım</span></a>
+                <a href="worker-tasks.html" class="nav-item"><i class="bi bi-list-task"></i><span>Tapşırıqlarım</span></a>
+                <a href="worker-projects.html" class="nav-item active"><i class="bi bi-building"></i><span>Layihələrim</span></a>
+                <a href="worker-overtime.html" class="nav-item"><i class="bi bi-clock-fill"></i><span>Məsai</span></a>
+                <a href="worker-advances.html" class="nav-item"><i class="bi bi-cash-coin"></i><span>Avanslarım</span></a>
+                <a href="worker-salary.html" class="nav-item"><i class="bi bi-cash-stack"></i><span>Maaşım</span></a>
+                <a href="worker-targets.html" class="nav-item"><i class="bi bi-bullseye"></i><span>Hədəflərim</span></a>
+                <a href="worker-permissions.html" class="nav-item"><i class="bi bi-calendar-check"></i><span>İcazələrim</span></a>
+                <a href="worker-documents.html" class="nav-item"><i class="bi bi-file-earmark-text"></i><span>Sənədlərim</span></a>
+                <a href="worker-shift-change.html" class="nav-item"><i class="bi bi-arrow-left-right"></i><span>Növbə Dəyişmə</span></a>
+            </nav>
+          
+        </aside>
+
+        <main class="main-content">
+            <header class="topbar">
+                <div class="topbar-left"><h1>Layihələrim</h1><p>Təyin edilmiş layihələr</p></div>
+                <div class="topbar-right">
+                    <button class="btn-icon" id="themeToggle"><i class="bi bi-moon"></i></button>
+                </div>
+            </header>
+
+            <div class="page-content">
+                <!-- Stats -->
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-icon blue">
+                            <i class="bi bi-building"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Ümumi Layihə</h3>
+                            <p class="stat-value" id="totalProjects">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon green">
+                            <i class="bi bi-check-circle"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Bitmiş</h3>
+                            <p class="stat-value" id="completedProjects">0</p>
+                        </div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-icon orange">
+                            <i class="bi bi-hourglass-split"></i>
+                        </div>
+                        <div class="stat-info">
+                            <h3>Davam Edən</h3>
+                            <p class="stat-value" id="activeProjects">0</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Projects Grid -->
+                <div class="dashboard-grid" id="projectsGrid">
+                    <!-- Projects will be loaded here -->
+                </div>
+            </div>
+        </main>
+    </div>
+    <script src="config.js"></script>
+    <script src="auth-backend.js"></script>
+    <script src="worker-shell.js"></script>
+    <script src="data-layer.js"></script>
+    <script src="auth.js"></script>
+    <script src="app.js"></script>
+    <script>
+        const currentUser = checkAuth();
+        if (!currentUser) window.location.href = 'login.html';
+
+        // Update user info
+        if (currentUser) {
+            document.getElementById('userName').textContent = currentUser.name;
+            document.getElementById('userAvatar').textContent = currentUser.name.charAt(0).toUpperCase();
+        }
+
+        function getProjects() {
+            return JSON.parse(localStorage.getItem('projects') || '[]');
+        }
+
+        // Load my projects
+        function loadMyProjects() {
+            const allProjects = getProjects();
+            const myProjects = allProjects.filter(p => p.workers?.includes(currentUser.id));
+
+            // Update stats
+            const completed = myProjects.filter(p => p.status === 'completed').length;
+            const active = myProjects.filter(p => p.status === 'active').length;
+
+            document.getElementById('totalProjects').textContent = myProjects.length;
+            document.getElementById('completedProjects').textContent = completed;
+            document.getElementById('activeProjects').textContent = active;
+
+            // Load grid
+            const container = document.getElementById('projectsGrid');
+            if (myProjects.length === 0) {
+                container.innerHTML = `
+                    <div class="card" style="grid-column: 1 / -1;">
+                        <div class="card-body" style="text-align: center; padding: 60px;">
+                            <i class="bi bi-building" style="font-size: 64px; color: var(--gray-light);"></i>
+                            <p style="margin-top: 16px; color: var(--gray);">Hələ heç bir layihəyə təyin edilməmisiniz</p>
+                        </div>
+                    </div>
+                `;
+                return;
+            }
+
+            const statusColors = {
+                'active': 'var(--primary)',
+                'completed': 'var(--success)',
+                'paused': 'var(--warning)',
+                'cancelled': 'var(--danger)'
+            };
+            const statusLabels = {
+                'active': 'Davam edir',
+                'completed': 'Bitmiş',
+                'paused': 'Dayandırılıb',
+                'cancelled': 'Ləğv edilib'
+            };
+
+            container.innerHTML = myProjects.map(p => `
+                <div class="card project-card">
+                    <div class="card-header" style="border-left: 4px solid ${statusColors[p.status]};">
+                        <div>
+                            <h3>${p.name}</h3>
+                            <small style="color: var(--gray);">${p.client}</small>
+                        </div>
+                        <span class="badge" style="background: ${statusColors[p.status]}20; color: ${statusColors[p.status]};">
+                            ${statusLabels[p.status]}
+                        </span>
+                    </div>
+                    <div class="card-body">
+                        <p style="color: var(--gray); margin-bottom: 16px;">
+                            <i class="bi bi-geo-alt"></i> ${p.address}
+                        </p>
+                        
+                        <div style="margin-bottom: 16px;">
+                            <div style="display: flex; justify-content: space-between; margin-bottom: 8px;">
+                                <span>Progress</span>
+                                <span>${p.progress || 0}%</span>
+                            </div>
+                            <div style="height: 8px; background: var(--gray-light); border-radius: 4px; overflow: hidden;">
+                                <div style="width: ${p.progress || 0}%; height: 100%; background: ${statusColors[p.status]}; transition: width 0.3s;"></div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; justify-content: space-between; align-items: center;">
+                            <div>
+                                <small style="color: var(--gray);">
+                                    <i class="bi bi-calendar"></i> ${formatDate(p.startDate)}
+                                </small>
+                            </div>
+                            <strong style="color: var(--primary);">${formatCurrency(p.value || 0)}</strong>
+                        </div>
+                        
+                        ${p.description ? `<p style="margin-top: 12px; color: var(--gray); font-size: 14px;">${p.description}</p>` : ''}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        document.addEventListener('DOMContentLoaded', loadMyProjects);
+    </script>
+</body>
+</html>
