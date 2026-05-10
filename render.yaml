@@ -1,19 +1,23 @@
-# Render Blueprint: tək Web Service — Node backend repo kökündəki HTML-i də verir.
-# MongoDB: Atlas URI tövsiyə olunur (Render diskdə Mongo saxlamır).
+# Render Blueprint — Dockerfile ilə tək konteyner (Express + statik frontend).
+# MongoDB: Atlas URI tövsiyə olunur.
+# İlk deploy: MONGODB_URI (və lazımdırsa CORS_ORIGINS) Dashboard-da təyin edin (sync: false).
+# Əgər servisi Blueprint olmadan yaratmusunuzsa: Environment bölməsində JWT_SECRET (≥32 simvol)
+# və JWT_REFRESH_SECRET əlavə edin — .dockerignore .env faylını image-a daxil etmir.
 # https://render.com/docs/blueprint-spec
 services:
   - type: web
     name: 555-insaat
-    runtime: node
+    runtime: docker
     region: frankfurt
-    rootDir: backend
-    buildCommand: npm install
-    startCommand: npm start
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
         value: production
       - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
         generateValue: true
       - key: MONGODB_URI
         sync: false
