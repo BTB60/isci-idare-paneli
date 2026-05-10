@@ -78,11 +78,14 @@
                     <p>Şəxsi məlumatlar və statistika</p>
                 </div>
                 <div class="topbar-right">
-                    <button class="btn btn-success" id="checkInBtn" onclick="checkIn()">
-                        <i class="bi bi-box-arrow-in-right"></i> İşə Gəldim
+                    <button type="button" class="btn btn-success" id="checkInBtn" onclick="checkInWeb()">
+                        <i class="bi bi-play-circle-fill"></i> İşə başla
                     </button>
-                    <button class="btn btn-danger" id="checkOutBtn" onclick="checkOut()" style="display: none;">
-                        <i class="bi bi-box-arrow-right"></i> İşdən Çıxıram
+                    <button type="button" class="btn btn-outline-secondary" id="checkInVoiceBtn" onclick="checkInWithVoice()" title="İstəyə bağlı səs təsdiqi">
+                        <i class="bi bi-mic"></i> Səs ilə
+                    </button>
+                    <button type="button" class="btn btn-danger" id="checkOutBtn" onclick="checkOut()" style="display: none;">
+                        <i class="bi bi-box-arrow-right"></i> İşdən çıx
                     </button>
                     <button class="btn-icon" id="themeToggle">
                         <i class="bi bi-moon"></i>
@@ -110,8 +113,11 @@
                             <i class="bi bi-cash"></i>
                         </div>
                         <div class="stat-info">
-                            <h3>Bugünkü Maaşım</h3>
+                            <h3>Bugünkü günlük məbləğ</h3>
                             <p class="stat-value" id="todaySalary">0 ₼</p>
+                            <small id="todaySalaryHint" style="display:block;margin-top:6px;font-weight:500;line-height:1.35;color:var(--gray);">
+                                Hər iş günü «İşə başla» ilə qeyd edin.
+                            </small>
                         </div>
                     </div>
                     <div class="stat-card">
@@ -342,9 +348,6 @@
             const penalties = getPenalties().filter(p => p.workerId === workerId);
             const tasks = getTasks().filter(t => t.assignedTo === workerId);
 
-            // Update stats
-            document.getElementById('todaySalary').textContent = formatCurrency(currentUser.dailySalary || 0);
-            
             const totalBonus = salaries.reduce((sum, s) => sum + (s.bonus || 0), 0);
             const totalPenalty = penalties.reduce((sum, p) => sum + (p.amount || 0), 0);
             
@@ -466,10 +469,81 @@
 
         function resetCheckInButtonUI() {
             const checkInBtn = document.getElementById('checkInBtn');
-            checkInBtn.innerHTML = '<i class="bi bi-box-arrow-in-right"></i> İşə Gəldim';
+            checkInBtn.innerHTML = '<i class="bi bi-play-circle-fill"></i> İşə başla';
             checkInBtn.disabled = false;
             checkInBtn.classList.remove('btn-warning');
             checkInBtn.classList.add('btn-success');
+        }
+
+        function syncVoiceCheckInButton() {
+            const checkInBtn = document.getElementById('checkInBtn');
+            const voiceBtn = document.getElementById('checkInVoiceBtn');
+            if (!voiceBtn || !checkInBtn) return;
+            const show =
+                checkInBtn.style.display !== 'none' &&
+                !checkInBtn.disabled &&
+                window.getComputedStyle(checkInBtn).display !== 'none';
+            voiceBtn.style.display = show ? 'inline-flex' : 'none';
+        }
+
+        /** Bugün üçün işə başlama qeydi varsa günlük məbləği göstərir */
+        async function refreshTodaySalaryFromAttendance() {
+            if (!currentUser) return;
+            const daily = Number(currentUser.dailySalary) || 0;
+            const today = new Date().toISOString().split('T')[0];
+            let checkedIn = false;
+            try {
+                const apiRes = await attendanceAPI.getMyRecords();
+                if (apiRes.success && Array.isArray(apiRes.attendance)) {
+                    const rec = apiRes.attendance.find((a) => attendanceRecordDay(a.date) === today);
+                    checkedIn = !!(rec && rec.checkIn && rec.checkIn.time);
+                }
+            } catch (e) {
+                console.warn(e);
+            }
+            const el = document.getElementById('todaySalary');
+            const hint = document.getElementById('todaySalaryHint');
+            if (el) el.textContent = checkedIn ? formatCurrency(daily) : formatCurrency(0);
+            if (hint) {
+                hint.textContent = checkedIn
+                    ? 'Bugün üçün işə başlama qeydə alındı — günlük məbləğ hesablanır.'
+                    : 'Hər iş günü «İşə başla» düyməsinə basın — günlük məbləğ aktivləşər.';
+            }
+        }
+
+        /** Bir kliklə işə başlama (serverdə davamiyyət qeydi — günlük hesab üçün əsas mənbə) */
+        async function checkInWeb() {
+            if (!currentUser) return;
+            const checkInBtn = document.getElementById('checkInBtn');
+            if (!checkInBtn || checkInBtn.disabled) return;
+            checkInBtn.disabled = true;
+            try {
+                const res = await attendanceAPI.checkIn({ method: 'web' });
+                if (res.success) {
+                    showNotification(
+                        res.message || 'İşə başlama qeydə alındı. Bugünkü günlük məbləğ hesablanır.',
+                        'success'
+                    );
+                    await refreshTodaySalaryFromAttendance();
+                    await checkTodayStatus();
+                    syncVoiceCheckInButton();
+                    return;
+                }
+                showNotification(res.message || 'Qeyd alınmadı', 'warning');
+                if (/artıq|already/i.test(String(res.message || ''))) {
+                    await refreshTodaySalaryFromAttendance();
+                    await checkTodayStatus();
+                } else {
+                    resetCheckInButtonUI();
+                    checkInBtn.disabled = false;
+                }
+            } catch (e) {
+                console.warn(e);
+                showNotification('Server əlçatmaz — offline qeyd saxlanılır.', 'warning');
+                legacyCheckInLocalPending();
+                await checkTodayStatus();
+            }
+            syncVoiceCheckInButton();
         }
 
         /** Backend və ya köhnə localStorage vəziyyətinə görə düymələri yeniləyir */
@@ -493,6 +567,7 @@
                         checkInBtn.style.display = 'none';
                         checkOutBtn.style.display = 'none';
                     }
+                    syncVoiceCheckInButton();
                     return;
                 }
             }
@@ -522,6 +597,7 @@
                 checkInBtn.classList.add('btn-warning');
                 checkOutBtn.style.display = 'none';
             }
+            syncVoiceCheckInButton();
         }
 
         function closeVoiceCheckinModal() {
@@ -576,7 +652,7 @@
         }
 
         /** İşə gəliş: əvvəlcə günlük ifadəni götürür, sonra mikrofonla təsdiq */
-        async function checkIn() {
+        async function checkInWithVoice() {
             if (!currentUser) return;
 
             const phraseRes = await attendanceAPI.getVoicePhrase();
@@ -633,6 +709,7 @@
                         if (res.success) {
                             showNotification(res.message || 'İşə gəliş qeydə alındı', 'success');
                             closeVoiceCheckinModal();
+                            await refreshTodaySalaryFromAttendance();
                             await checkTodayStatus();
                         } else {
                             statusEl.textContent = res.message || 'Uyğunluq alınmadı';
@@ -655,6 +732,7 @@
             if (res.success) {
                 document.getElementById('checkOutBtn').style.display = 'none';
                 showNotification(res.message || 'İşdən çıxışınız qeyd edildi', 'success');
+                await refreshTodaySalaryFromAttendance();
                 await checkTodayStatus();
                 return;
             }
@@ -698,6 +776,7 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             loadWorkerDashboard();
+            refreshTodaySalaryFromAttendance().catch(console.error);
             checkTodayStatus().catch(console.error);
             document.getElementById('voiceCheckinModal').addEventListener('click', (e) => {
                 if (e.target.id === 'voiceCheckinModal') closeVoiceCheckinModal();

@@ -188,7 +188,10 @@ router.post('/checkin', protect, async (req, res) => {
     });
 
     if (attendance && attendance.checkIn && attendance.checkIn.time) {
-      return res.status(400).json({ success: false, message: 'Already checked in today' });
+      return res.status(400).json({
+        success: false,
+        message: 'Bu gün üçün artıq işə başlama qeydiniz var'
+      });
     }
 
     if (!attendance) {
@@ -212,7 +215,9 @@ router.post('/checkin', protect, async (req, res) => {
 
     res.json({
       success: true,
-      message: useVoice ? 'Səs təsdiqi ilə işə gəliş qeydə alındı' : 'Check-in successful',
+      message: useVoice
+        ? 'Səs təsdiqi ilə işə başlama qeydə alındı'
+        : 'İşə başlama qeydə alındı — bugün üçün günlük məbləğ hesablanır',
       attendance
     });
   } catch (error) {
@@ -264,7 +269,7 @@ router.post('/checkout', protect, async (req, res) => {
 
     res.json({
       success: true,
-      message: 'Check-out successful',
+      message: 'İşdən çıxış qeydə alındı',
       attendance
     });
   } catch (error) {

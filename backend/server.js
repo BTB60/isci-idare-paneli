@@ -12,7 +12,8 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-require('dotenv').config();
+// Hər zaman backend/.env — repo kökündən `node backend/server.js` işlədəndə də düzgün yüklənir
+require('dotenv').config({ path: path.join(__dirname, '.env') });
 
 const { createLogger } = require('./utils/logger');
 const { validateEnv } = require('./utils/validateEnv');

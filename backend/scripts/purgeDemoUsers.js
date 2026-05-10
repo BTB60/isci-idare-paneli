@@ -2,7 +2,8 @@
  * Köhnə demo istifadəçiləri (əvvəlki seedDemoUsers) MongoDB-dən silir.
  * İşə salınması: npm run purge-demo-users
  */
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
 const User = require('../models/User');
 

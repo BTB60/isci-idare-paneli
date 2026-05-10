@@ -4,7 +4,8 @@
  * İstifadə:
  *   node scripts/createAdminUser.js admin@firma.az SecilmisSifre123 "Ad Soyad"
  */
-require('dotenv').config();
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const { resolveRoleAssignment } = require('../utils/roles');
