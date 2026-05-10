@@ -17,9 +17,9 @@ function getJwtSecret() {
   if (isProd) {
     if (!trimmed || trimmed.length < 32) {
       throw new Error(
-        'JWT_SECRET production-da təyin olunmalıdır (≥32 simvol). Əlavə edin: backend/.env və ya ' +
-          'bulud sırları (Fly: fly secrets set JWT_SECRET=təsadüfi_uzun_string). ' +
-          'Yaratmaq: node -e "console.log(require(\'crypto\').randomBytes(32).toString(\'hex\'))"'
+        'JWT_SECRET production-da təyin olunmalıdır (≥32 simvol). ' +
+          'Yerli: backend/.env və ya repo kökü .env — npm run gen:jwt-secrets (backend qovluğundan). ' +
+          'Fly.io/Docker: .env image-da olmur — MUST: fly secrets set JWT_SECRET=... JWT_REFRESH_SECRET=... MONGODB_URI=...'
       );
     }
     if (WEAK_PLACEHOLDER.test(trimmed)) {

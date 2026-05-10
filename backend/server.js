@@ -12,8 +12,10 @@ const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const cookieParser = require('cookie-parser');
-// Hər zaman backend/.env — repo kökündən `node backend/server.js` işlədəndə də düzgün yüklənir
-require('dotenv').config({ path: path.join(__dirname, '.env') });
+// Əvvəl repo kökü .env (fallback), sonra backend/.env (üstünlük).
+// Fly/Docker-da .env image-a düşmür — JWT və Mongo sırları fly secrets ilə verilməlidir.
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '.env'), override: true });
 
 const { createLogger } = require('./utils/logger');
 const { validateEnv } = require('./utils/validateEnv');

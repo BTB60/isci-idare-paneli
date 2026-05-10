@@ -5,7 +5,8 @@
  *   node scripts/createAdminUser.js admin@firma.az SecilmisSifre123 "Ad Soyad"
  */
 const path = require('path');
-require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '..', '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env'), override: true });
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const { resolveRoleAssignment } = require('../utils/roles');

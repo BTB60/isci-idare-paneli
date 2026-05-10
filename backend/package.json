@@ -8,7 +8,8 @@
     "dev": "nodemon server.js",
     "test": "jest",
     "purge-demo-users": "node scripts/purgeDemoUsers.js",
-    "create-admin": "node scripts/createAdminUser.js"
+    "create-admin": "node scripts/createAdminUser.js",
+    "gen:jwt-secrets": "node scripts/genJwtSecrets.js"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",

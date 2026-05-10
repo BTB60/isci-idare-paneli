@@ -7,6 +7,9 @@ primary_region = "ams"
 
 [build]
 
+# Docker image-da .env YOXDUR. Deploy əvvəl və ya sonra:
+#   fly secrets set JWT_SECRET="$(openssl rand -hex 32)" JWT_REFRESH_SECRET="$(openssl rand -hex 32)" MONGODB_URI="mongodb+srv://..."
+# və ya backend-də: npm run gen:jwt-secrets — dəyərləri kopyalayıb Fly-da təyin edin.
 [env]
   NODE_ENV = "production"
 
